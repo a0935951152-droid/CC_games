@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 CC Games - 遊戲中心</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Comic Sans MS', 'Microsoft JhengHei', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    min-height: 100vh;
+    color: #fff;
+    overflow-x: hidden;
+    position: relative;
+  }
+  /* 動態背景星星 */
+  .star {
+    position: fixed;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle 3s infinite;
+    pointer-events: none;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+  }
+  @keyframes glow {
+    0%, 100% { text-shadow: 0 0 20px rgba(255,255,255,0.5), 0 0 40px rgba(255,200,50,0.3); }
+    50% { text-shadow: 0 0 30px rgba(255,255,255,0.8), 0 0 60px rgba(255,200,50,0.6); }
+  }
+  header {
+    text-align: center;
+    padding: 60px 20px 40px;
+    position: relative;
+  }
+  header h1 {
+    font-size: 64px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    animation: glow 3s infinite;
+    margin-bottom: 16px;
+  }
+  header .emoji {
+    font-size: 80px;
+    display: inline-block;
+    animation: float 3s ease-in-out infinite;
+  }
+  header p {
+    font-size: 20px;
+    opacity: 0.9;
+    margin-top: 10px;
+    letter-spacing: 2px;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    padding: 40px 20px;
+  }
+  .game-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    padding: 30px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .game-card::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7e, #4ecdc4);
+    background-size: 400% 400%;
+    border-radius: 24px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s;
+    animation: gradientShift 4s ease infinite;
+  }
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .game-card:hover {
+    transform: translateY(-12px) scale(1.03);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  }
+  .game-card:hover::before { opacity: 1; }
+  .game-icon {
+    font-size: 90px;
+    text-align: center;
+    margin-bottom: 20px;
+    display: block;
+    transition: transform 0.4s;
+  }
+  .game-card:hover .game-icon {
+    transform: scale(1.15) rotate(-5deg);
+  }
+  .game-title {
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 12px;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  }
+  .game-desc {
+    font-size: 15px;
+    text-align: center;
+    line-height: 1.6;
+    opacity: 0.9;
+    margin-bottom: 20px;
+    min-height: 60px;
+  }
+  .game-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .tag {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .play-btn {
+    display: block;
+    background: linear-gradient(135deg, #ffd93d, #ff6b6b);
+    color: #2c1810;
+    text-align: center;
+    padding: 14px;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    transition: all 0.2s;
+    letter-spacing: 2px;
+  }
+  .game-card:hover .play-btn {
+    background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+    transform: scale(1.05);
+  }
+  footer {
+    text-align: center;
+    padding: 40px 20px;
+    opacity: 0.7;
+    font-size: 14px;
+  }
+  footer a {
+    color: #ffd93d;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  footer a:hover { text-decoration: underline; }
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin: 20px 0 40px;
+  }
+  .stat {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 16px 28px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.2);
+    text-align: center;
+    backdrop-filter: blur(10px);
+  }
+  .stat-num {
+    font-size: 32px;
+    font-weight: bold;
+    color: #ffd93d;
+    display: block;
+  }
+  .stat-label {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-top: 4px;
+  }
+  @media (max-width: 600px) {
+    header h1 { font-size: 42px; }
+    header .emoji { font-size: 60px; }
+    .games-grid { padding: 20px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="emoji">🎮</div>
+  <h1>CC GAMES</h1>
+  <p>✨ 卡通風格的瀏覽器小遊戲合集 ✨</p>
+</header>
+
+<div class="container">
+  <div class="stats-row">
+    <div class="stat">
+      <span class="stat-num">2</span>
+      <span class="stat-label">🎯 遊戲數量</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">100%</span>
+      <span class="stat-label">🌐 純瀏覽器</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">∞</span>
+      <span class="stat-label">😎 樂趣指數</span>
+    </div>
+  </div>
+
+  <div class="games-grid">
+
+    <a href="games/毀滅戰爭遊戲.html" class="game-card">
+      <span class="game-icon">🧟‍♂️</span>
+      <h2 class="game-title">毀滅戰爭</h2>
+      <p class="game-desc">末日來臨！身為最後的倖存者，奮力對抗成群喪屍！橫向卷軸射擊，波數越高敵人越強。</p>
+      <div class="game-tags">
+        <span class="tag">🔫 射擊</span>
+        <span class="tag">🧟 喪屍</span>
+        <span class="tag">🎯 動作</span>
+      </div>
+      <span class="play-btn">▶ 開始遊戲</span>
+    </a>
+
+    <a href="games/小恐龍遊戲.html" class="game-card">
+      <span class="game-icon">🦖</span>
+      <h2 class="game-title">離線小恐龍</h2>
+      <p class="game-desc">完整還原 Chrome 離線版！跳過仙人掌、躲開翼龍、日夜切換，挑戰最高分數記錄！</p>
+      <div class="game-tags">
+        <span class="tag">🏃 跑酷</span>
+        <span class="tag">🎨 像素</span>
+        <span class="tag">🏆 高分</span>
+      </div>
+      <span class="play-btn">▶ 開始遊戲</span>
+    </a>
+
+  </div>
+</div>
+
+<footer>
+  <p>🌟 Made with ❤️ by <a href="https://github.com/a0935951152-droid" target="_blank">@a0935951152-droid</a> 🌟</p>
+  <p style="margin-top:10px;">原始碼：<a href="https://github.com/a0935951152-droid/CC_games" target="_blank">GitHub Repo</a></p>
+</footer>
+
+<script>
+  // 動態生成背景星星
+  for (let i = 0; i < 40; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    const size = Math.random() * 4 + 1;
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.animationDelay = Math.random() * 3 + 's';
+    document.body.appendChild(star);
+  }
+</script>
+
+</bo
