@@ -187,7 +187,7 @@ function rectHit(a, b) {
 }
 
 function update() {
-  if (!state.running) return;
+  if (!state || !state.running) return;
   const p = state.player;
 
   // 玩家移動
