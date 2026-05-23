@@ -250,6 +250,15 @@ addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (['arrowleft','arrowright','arrowup','arrowdown',' '].includes(k)) e.preventDefault();
   keys[k] = true;
+
+  // 鍵盤開場 / 重戰 / 進下一波（Enter 或 Space）
+  if (e.key === 'Enter' || e.key === ' ') {
+    let triggered = false;
+    if (phase === 'start') { document.getElementById('goBtn')?.click(); triggered = true; }
+    else if (phase === 'over') { document.getElementById('againBtn')?.click(); triggered = true; }
+    else if (phase === 'shop') { document.getElementById('nextBtn')?.click(); triggered = true; }
+    if (triggered) keys[' '] = false; // 避免同一次按鍵立刻在遊戲內觸發跳躍
+  }
 });
 addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 

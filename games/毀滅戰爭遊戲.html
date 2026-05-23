@@ -205,6 +205,15 @@ const mouse = { x: 0, y: 0, down: false };
 document.addEventListener('keydown', e => {
   keys[e.key.toLowerCase()] = true;
   if (['arrowup','arrowdown','arrowleft','arrowright',' '].includes(e.key.toLowerCase())) e.preventDefault();
+
+  // 鍵盤開場 / 重玩：overlay 上有 button 就觸發
+  if (e.key === 'Enter' || e.key === ' ') {
+    const overlay = document.getElementById('overlay');
+    if (overlay && !overlay.classList.contains('hidden')) {
+      const btn = overlay.querySelector('button');
+      if (btn) { btn.click(); keys[' '] = false; /* 避免立刻觸發遊戲內跳躍 */ }
+    }
+  }
 });
 document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 canvas.addEventListener('mousedown', e => {
