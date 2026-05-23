@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>🦖 3D 小恐龍 T-REX RUNNER</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,8 +28,8 @@
     position: relative;
     width: 960px;
     max-width: 96vw;
-    height: 540px;
-    max-height: 64vh;
+    aspect-ratio: 16 / 9;
+    max-height: 70vh;
     border-radius: 14px;
     overflow: hidden;
     box-shadow: 0 12px 48px rgba(0,0,0,0.6), 0 0 0 3px rgba(255,255,255,0.1);
@@ -97,7 +97,48 @@
     z-index: 5;
   }
   #loading.hidden { display: none; }
-</style>
+
+  /* 觸控按鍵 */
+  .touch-controls {
+    position: absolute;
+    left: 12px; right: 12px; bottom: 12px;
+    display: none;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 8;
+  }
+  .tc-side { display: flex; gap: 10px; pointer-events: auto; }
+  .tc-btn {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.4);
+    color: #fff;
+    font-size: 26px;
+    font-weight: bold;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .tc-btn.pressed {
+    background: rgba(255,217,61,0.55);
+    border-color: #ffd93d;
+    transform: scale(0.92);
+  }
+  .tc-btn.jump { background: rgba(107,207,126,0.3); border-color: #6bcf7e; }
+  .tc-btn.duck { background: rgba(255,107,107,0.3); border-color: #ff6b6b; }
+  @media (max-width: 900px), (hover: none) and (pointer: coarse) {
+    .touch-controls { display: flex; }
+  }
 </head>
 <body>
 <a href="../index.html" class="back">← 返回</a>
@@ -112,7 +153,17 @@
   </div>
   <div id="message">
     <h2>3D RUNNER</h2>
-    <p><b>← →</b> / <b>A D</b> 左右閃避<br><b>空白 / ↑</b> 跳躍 &nbsp;|&nbsp; <b>↓</b> 蹲下 &nbsp;|&nbsp; <b>R</b> 重玩<br><br>按 <b>空白鍵</b> 開始</p>
+    <p><b>← →</b> / <b>A D</b> 左右閃避<br><b>空白 / ↑</b> 跳躍 &nbsp;|&nbsp; <b>↓</b> 蹲下 &nbsp;|&nbsp; <b>R</b> 重玩<br>📱 觸控有左右 + 跳/蹲按鈕，也可滑動<br><br>按 <b>空白鍵</b> / 點畫面 開始</p>
+  </div>
+  <div class="touch-controls" id="touchControls">
+    <div class="tc-side">
+      <button class="tc-btn" data-act="left">◀</button>
+      <button class="tc-btn" data-act="right">▶</button>
+    </div>
+    <div class="tc-side">
+      <button class="tc-btn duck" data-act="duck">🧎</button>
+      <button class="tc-btn jump" data-act="jump">🚀</button>
+    </div>
   </div>
 </div>
 
@@ -892,6 +943,41 @@ renderer.domElement.addEventListener('click', () => {
     dinoState.vy = 0.34;
     dinoState.jumping = true;
   }
+});
+
+// 觸控虛擬按鈕
+function triggerJump() {
+  if (state.mode === 'idle' || state.mode === 'gameover') { startGame(); return; }
+  if (!dinoState.jumping) {
+    dinoState.vy = 0.34;
+    dinoState.jumping = true;
+    dinoState.ducking = false;
+  }
+}
+document.querySelectorAll('#touchControls .tc-btn').forEach(btn => {
+  const act = btn.dataset.act;
+  const press = e => {
+    e.preventDefault();
+    btn.classList.add('pressed');
+    if (act === 'left') keysHeld.left = true;
+    else if (act === 'right') keysHeld.right = true;
+    else if (act === 'jump') triggerJump();
+    else if (act === 'duck') {
+      dinoState.ducking = true;
+      if (dinoState.jumping) dinoState.vy = Math.min(dinoState.vy, -0.1);
+    }
+  };
+  const release = e => {
+    e.preventDefault();
+    btn.classList.remove('pressed');
+    if (act === 'left') keysHeld.left = false;
+    else if (act === 'right') keysHeld.right = false;
+    else if (act === 'duck') dinoState.ducking = false;
+  };
+  btn.addEventListener('pointerdown', press);
+  btn.addEventListener('pointerup', release);
+  btn.addEventListener('pointercancel', release);
+  btn.addEventListener('pointerleave', release);
 });
 
 // 觸控滑動：上滑跳、下滑蹲、左右移動

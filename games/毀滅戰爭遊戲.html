@@ -2,6 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>毀滅戰爭：末日生存</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -18,14 +19,54 @@
   #gameContainer {
     position: relative;
     width: 960px;
-    height: 540px;
+    max-width: 98vw;
+    aspect-ratio: 16 / 9;
+    max-height: 92vh;
     border: 4px solid #ffcc33;
     border-radius: 12px;
     box-shadow: 0 0 30px rgba(255,200,50,0.5);
     overflow: hidden;
     background: #87CEEB;
   }
-  canvas { display: block; }
+  canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  /* 觸控按鍵 */
+  .tc-pad {
+    position: absolute;
+    bottom: 10px; left: 10px; right: 10px;
+    display: none;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 15;
+  }
+  .tc-side { display: flex; gap: 8px; pointer-events: auto; }
+  .tc-btn {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,204,51,0.55);
+    background: rgba(0,0,0,0.35);
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .tc-btn.pressed {
+    background: rgba(255,204,51,0.5);
+    transform: scale(0.92);
+  }
+  .tc-btn.bomb { background: rgba(255,80,80,0.35); border-color: #ff6060; }
+  .tc-btn.jump { background: rgba(76,205,196,0.3); border-color: #4ecdc4; }
+  @media (max-width: 1000px), (hover: none) and (pointer: coarse) {
+    .tc-pad { display: flex; }
+  }
   #hud {
     position: absolute;
     top: 10px; left: 10px; right: 10px;
@@ -120,8 +161,20 @@
       <p><b>⬆️ 跳躍：</b> W / ↑ / 空白鍵</p>
       <p><b>🔫 射擊：</b> 滑鼠左鍵 或 J 鍵</p>
       <p><b>💣 大絕招：</b> K 鍵（每波一次）</p>
+      <p><b>📱 觸控：</b> 左下移動／跳，右下 💣，點畫面瞄準射擊</p>
     </div>
     <button id="startBtn">開始遊戲</button>
+  </div>
+
+  <div class="tc-pad" id="tcPad">
+    <div class="tc-side">
+      <button class="tc-btn" data-key="arrowleft">◀</button>
+      <button class="tc-btn" data-key="arrowright">▶</button>
+      <button class="tc-btn jump" data-key=" ">🚀</button>
+    </div>
+    <div class="tc-side">
+      <button class="tc-btn bomb" data-key="k">💣</button>
+    </div>
   </div>
 </div>
 
@@ -165,6 +218,39 @@ function updateMouse(e) {
   mouse.x = (e.clientX - rect.left) * (W / rect.width);
   mouse.y = (e.clientY - rect.top) * (H / rect.height);
 }
+
+// 觸控：在 canvas 上點 / 拖曳 = 瞄準 + 持續射擊
+canvas.addEventListener('touchstart', e => {
+  if (!e.touches.length) return;
+  e.preventDefault();
+  mouse.down = true;
+  const rect = canvas.getBoundingClientRect();
+  mouse.x = (e.touches[0].clientX - rect.left) * (W / rect.width);
+  mouse.y = (e.touches[0].clientY - rect.top) * (H / rect.height);
+}, { passive: false });
+canvas.addEventListener('touchmove', e => {
+  if (!e.touches.length) return;
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  mouse.x = (e.touches[0].clientX - rect.left) * (W / rect.width);
+  mouse.y = (e.touches[0].clientY - rect.top) * (H / rect.height);
+}, { passive: false });
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  mouse.down = false;
+}, { passive: false });
+canvas.addEventListener('touchcancel', () => mouse.down = false);
+
+// 虛擬按鈕 → keys
+document.querySelectorAll('#tcPad .tc-btn').forEach(btn => {
+  const k = btn.dataset.key;
+  const down = e => { e.preventDefault(); btn.classList.add('pressed'); keys[k] = true; };
+  const up   = e => { e.preventDefault(); btn.classList.remove('pressed'); keys[k] = false; };
+  btn.addEventListener('pointerdown', down);
+  btn.addEventListener('pointerup', up);
+  btn.addEventListener('pointercancel', up);
+  btn.addEventListener('pointerleave', up);
+});
 
 // === 玩家 ===
 const player = {
