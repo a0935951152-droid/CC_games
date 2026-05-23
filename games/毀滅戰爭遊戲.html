@@ -29,43 +29,63 @@
     background: #87CEEB;
   }
   canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-  /* 觸控按鍵 */
+  /* 觸控版面 */
   .tc-pad {
     position: absolute;
-    bottom: 10px; left: 10px; right: 10px;
+    bottom: 12px; left: 12px; right: 12px;
     display: none;
     justify-content: space-between;
+    align-items: flex-end;
     pointer-events: none;
     z-index: 15;
   }
-  .tc-side { display: flex; gap: 8px; pointer-events: auto; }
+  .tc-side { pointer-events: auto; }
+  .dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 52px);
+    grid-template-rows: repeat(2, 52px);
+    gap: 6px;
+  }
+  .dpad .jump-slot { grid-area: 1 / 2; }
+  .dpad .left-slot { grid-area: 2 / 1; }
+  .dpad .right-slot { grid-area: 2 / 3; }
   .tc-btn {
-    width: 56px; height: 56px;
+    width: 100%; height: 100%;
     border-radius: 50%;
     border: 2px solid rgba(255,204,51,0.55);
-    background: rgba(0,0,0,0.35);
+    background: rgba(0,0,0,0.4);
     color: #fff;
-    font-size: 20px;
-    font-weight: bold;
     font-family: inherit;
+    font-weight: bold;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding: 0;
     -webkit-tap-highlight-color: transparent;
     touch-action: none;
     box-shadow: 0 3px 8px rgba(0,0,0,0.4);
     user-select: none;
     -webkit-user-select: none;
   }
-  .tc-btn.pressed {
-    background: rgba(255,204,51,0.5);
-    transform: scale(0.92);
+  .tc-btn .ic  { font-size: 22px; line-height: 1; }
+  .tc-btn .lbl { font-size: 9px; opacity: 0.78; margin-top: 2px; letter-spacing: 0.5px; }
+  .tc-btn.pressed { background: rgba(255,204,51,0.5); transform: scale(0.92); }
+  .tc-btn.bomb {
+    width: 76px; height: 76px;
+    background: rgba(255,80,80,0.35);
+    border-color: #ff6060;
   }
-  .tc-btn.bomb { background: rgba(255,80,80,0.35); border-color: #ff6060; }
+  .tc-btn.bomb .ic { font-size: 30px; }
   .tc-btn.jump { background: rgba(76,205,196,0.3); border-color: #4ecdc4; }
   @media (max-width: 1000px), (hover: none) and (pointer: coarse) {
     .tc-pad { display: flex; }
+  }
+  @media (max-width: 400px) {
+    .dpad { grid-template-columns: repeat(3, 46px); grid-template-rows: repeat(2, 46px); }
+    .tc-btn.bomb { width: 64px; height: 64px; }
+    .tc-btn.bomb .ic { font-size: 26px; }
   }
   #hud {
     position: absolute;
@@ -167,13 +187,13 @@
   </div>
 
   <div class="tc-pad" id="tcPad">
-    <div class="tc-side">
-      <button class="tc-btn" data-key="arrowleft">◀</button>
-      <button class="tc-btn" data-key="arrowright">▶</button>
-      <button class="tc-btn jump" data-key=" ">🚀</button>
+    <div class="tc-side dpad">
+      <button class="tc-btn jump jump-slot" data-key=" "><span class="ic">🚀</span><span class="lbl">跳</span></button>
+      <button class="tc-btn left-slot" data-key="arrowleft"><span class="ic">◀</span></button>
+      <button class="tc-btn right-slot" data-key="arrowright"><span class="ic">▶</span></button>
     </div>
     <div class="tc-side">
-      <button class="tc-btn bomb" data-key="k">💣</button>
+      <button class="tc-btn bomb" data-key="k"><span class="ic">💣</span><span class="lbl">大絕</span></button>
     </div>
   </div>
 </div>

@@ -101,43 +101,54 @@
   /* 觸控按鍵 */
   .touch-controls {
     position: absolute;
-    left: 12px; right: 12px; bottom: 12px;
+    left: 14px; right: 14px; bottom: 14px;
     display: none;
     justify-content: space-between;
+    align-items: flex-end;
     pointer-events: none;
     z-index: 8;
   }
-  .tc-side { display: flex; gap: 10px; pointer-events: auto; }
+  .tc-side { display: flex; gap: 12px; pointer-events: auto; align-items: flex-end; }
   .tc-btn {
-    width: 64px; height: 64px;
+    width: 60px; height: 60px;
     border-radius: 50%;
     background: rgba(255,255,255,0.18);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 2px solid rgba(255,255,255,0.4);
     color: #fff;
-    font-size: 26px;
-    font-weight: bold;
     font-family: inherit;
+    font-weight: bold;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding: 0;
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: none;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   }
+  .tc-btn .ic  { font-size: 22px; line-height: 1; }
+  .tc-btn .lbl { font-size: 10px; opacity: 0.8; margin-top: 2px; letter-spacing: 0.5px; }
   .tc-btn.pressed {
     background: rgba(255,217,61,0.55);
     border-color: #ffd93d;
     transform: scale(0.92);
   }
-  .tc-btn.jump { background: rgba(107,207,126,0.3); border-color: #6bcf7e; }
+  .tc-btn.jump { width: 72px; height: 72px; background: rgba(107,207,126,0.32); border-color: #6bcf7e; }
+  .tc-btn.jump .ic { font-size: 28px; }
   .tc-btn.duck { background: rgba(255,107,107,0.3); border-color: #ff6b6b; }
   @media (max-width: 900px), (hover: none) and (pointer: coarse) {
     .touch-controls { display: flex; }
+  }
+  @media (max-width: 400px) {
+    .tc-btn { width: 52px; height: 52px; }
+    .tc-btn.jump { width: 62px; height: 62px; }
+    .tc-btn .ic { font-size: 18px; }
+    .tc-btn.jump .ic { font-size: 24px; }
   }
 </head>
 <body>
@@ -157,12 +168,12 @@
   </div>
   <div class="touch-controls" id="touchControls">
     <div class="tc-side">
-      <button class="tc-btn" data-act="left">◀</button>
-      <button class="tc-btn" data-act="right">▶</button>
+      <button class="tc-btn" data-act="left"><span class="ic">◀</span></button>
+      <button class="tc-btn" data-act="right"><span class="ic">▶</span></button>
     </div>
     <div class="tc-side">
-      <button class="tc-btn duck" data-act="duck">🧎</button>
-      <button class="tc-btn jump" data-act="jump">🚀</button>
+      <button class="tc-btn duck" data-act="duck"><span class="ic">🧎</span><span class="lbl">蹲</span></button>
+      <button class="tc-btn jump" data-act="jump"><span class="ic">🚀</span><span class="lbl">跳</span></button>
     </div>
   </div>
 </div>

@@ -41,50 +41,68 @@
   }
   #gameWrap canvas { width: 100%; height: 100%; }
   canvas { display: block; background: #2a2c52; max-width: 100%; height: auto; touch-action: none; }
-  /* 觸控按鍵（手機/平板） */
+  /* 觸控版面（手機/平板） */
   .tc-pad {
     display: none;
     width: 100%;
     max-width: 900px;
     margin-top: 14px;
-    padding: 0 8px;
+    padding: 0 14px;
     justify-content: space-between;
-    align-items: flex-end;
-    gap: 12px;
+    align-items: center;
+    gap: 16px;
     user-select: none;
     -webkit-user-select: none;
   }
-  .tc-pad .col { display: flex; flex-direction: column; gap: 8px; }
-  .tc-pad .row { display: flex; gap: 8px; }
+  .tc-side { display: flex; }
+  .dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 50px);
+    grid-template-rows: repeat(3, 50px);
+    gap: 6px;
+  }
+  .acts {
+    display: grid;
+    grid-template-columns: repeat(2, 58px);
+    grid-template-rows: repeat(2, 58px);
+    gap: 8px;
+  }
   .tc-btn {
-    width: 56px; height: 56px;
+    width: 100%; height: 100%;
     border-radius: 50%;
     border: 2px solid rgba(255,217,61,0.55);
     background: rgba(255,255,255,0.1);
     color: #fff;
-    font-size: 20px;
-    font-weight: bold;
     font-family: inherit;
+    font-weight: bold;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding: 0;
     -webkit-tap-highlight-color: transparent;
     touch-action: none;
     box-shadow: 0 3px 8px rgba(0,0,0,0.4);
   }
-  .tc-btn small { font-size: 10px; display: block; opacity: 0.7; margin-top: -2px; }
-  .tc-btn.pressed {
-    background: rgba(255,217,61,0.5);
-    transform: scale(0.92);
-  }
-  .tc-btn.atk-j { background: rgba(107,207,126,0.18); border-color: #6bcf7e; }
-  .tc-btn.atk-k { background: rgba(255,107,107,0.18); border-color: #ff6b6b; }
-  .tc-btn.atk-l { background: rgba(180,140,255,0.22); border-color: #b48cff; }
-  .tc-btn.jump  { background: rgba(76,205,196,0.2); border-color: #4ecdc4; }
+  .tc-btn .ic  { font-size: 18px; line-height: 1; }
+  .tc-btn .lbl { font-size: 9px; opacity: 0.75; margin-top: 2px; letter-spacing: 0.5px; }
+  .tc-btn.pressed { background: rgba(255,217,61,0.5); transform: scale(0.92); }
+  .dpad .up    { grid-area: 1 / 2; }
+  .dpad .left  { grid-area: 2 / 1; }
+  .dpad .right { grid-area: 2 / 3; }
+  .dpad .down  { grid-area: 3 / 2; }
+  .tc-btn.atk-j { background: rgba(107,207,126,0.22); border-color: #6bcf7e; }
+  .tc-btn.atk-k { background: rgba(255,107,107,0.22); border-color: #ff6b6b; }
+  .tc-btn.atk-l { background: rgba(180,140,255,0.26); border-color: #b48cff; }
+  .tc-btn.jump  { background: rgba(76,205,196,0.24); border-color: #4ecdc4; }
   @media (max-width: 900px), (hover: none) and (pointer: coarse) {
     .tc-pad { display: flex; }
     .keys { display: none; }
+  }
+  @media (max-width: 400px) {
+    .dpad { grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); }
+    .acts { grid-template-columns: repeat(2, 50px); grid-template-rows: repeat(2, 50px); }
   }
   #overlay {
     position: absolute;
@@ -169,25 +187,17 @@
 </div>
 
 <div class="tc-pad" id="tcPad">
-  <div class="col">
-    <div class="row">
-      <button class="tc-btn" data-key="arrowup">▲<small>跳</small></button>
-    </div>
-    <div class="row">
-      <button class="tc-btn" data-key="arrowleft">◀</button>
-      <button class="tc-btn" data-key="arrowdown">▼<small>挖</small></button>
-      <button class="tc-btn" data-key="arrowright">▶</button>
-    </div>
+  <div class="tc-side dpad">
+    <button class="tc-btn up"    data-key="arrowup"><span class="ic">▲</span><span class="lbl">跳</span></button>
+    <button class="tc-btn left"  data-key="arrowleft"><span class="ic">◀</span></button>
+    <button class="tc-btn right" data-key="arrowright"><span class="ic">▶</span></button>
+    <button class="tc-btn down"  data-key="arrowdown"><span class="ic">▼</span><span class="lbl">挖</span></button>
   </div>
-  <div class="col">
-    <div class="row">
-      <button class="tc-btn atk-l" data-key="l">忍<small>術</small></button>
-    </div>
-    <div class="row">
-      <button class="tc-btn atk-j" data-key="j">手<small>裏劍</small></button>
-      <button class="tc-btn atk-k" data-key="k">刀<small>劍</small></button>
-      <button class="tc-btn jump" data-key=" ">跳<small>SP</small></button>
-    </div>
+  <div class="tc-side acts">
+    <button class="tc-btn atk-j" data-key="j"><span class="ic">🌟</span><span class="lbl">手裏劍</span></button>
+    <button class="tc-btn atk-k" data-key="k"><span class="ic">⚔️</span><span class="lbl">刀劍</span></button>
+    <button class="tc-btn atk-l" data-key="l"><span class="ic">💫</span><span class="lbl">忍術</span></button>
+    <button class="tc-btn jump"  data-key=" "><span class="ic">🚀</span><span class="lbl">跳</span></button>
   </div>
 </div>
 
