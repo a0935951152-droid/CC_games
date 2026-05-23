@@ -2,605 +2,1066 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>離線小恐龍遊戲 🦖</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦖 3D 小恐龍 T-REX RUNNER</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: #f7f7f7;
+    background: #1a1a2e;
     font-family: 'Courier New', 'Microsoft JhengHei', monospace;
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: #535353;
+    color: #eee;
+    overflow: hidden;
   }
   h1 {
     font-size: 22px;
-    margin-bottom: 12px;
-    letter-spacing: 2px;
+    margin-bottom: 10px;
+    letter-spacing: 4px;
+    color: #ffd93d;
+    text-shadow: 0 0 12px rgba(255,217,61,0.5);
   }
   #gameContainer {
     position: relative;
-    width: 800px;
-    height: 200px;
-    background: #f7f7f7;
-    border-bottom: none;
+    width: 960px;
+    max-width: 96vw;
+    height: 540px;
+    max-height: 64vh;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.6), 0 0 0 3px rgba(255,255,255,0.1);
   }
-  canvas {
-    display: block;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-  }
+  canvas { display: block; }
   #hud {
     position: absolute;
-    top: 10px; right: 20px;
-    font-size: 16px;
+    top: 14px; right: 20px;
+    font-size: 18px;
     font-weight: bold;
-    color: #535353;
-    letter-spacing: 2px;
-    font-family: 'Courier New', monospace;
+    letter-spacing: 3px;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    pointer-events: none;
   }
-  #hud .hi {
-    color: #999;
-    margin-right: 20px;
-  }
+  #hud .hi { color: #ffd93d; margin-right: 24px; }
   #message {
     position: absolute;
-    top: 80px;
-    left: 0; right: 0;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
     text-align: center;
-    font-size: 14px;
-    color: #535353;
-    letter-spacing: 1px;
-    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.55);
+    padding: 22px 36px;
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    border: 2px solid rgba(255,255,255,0.2);
+    pointer-events: none;
   }
   #message.hidden { display: none; }
+  #message h2 { font-size: 28px; letter-spacing: 4px; margin-bottom: 8px; color: #ffd93d; }
+  #message p { font-size: 14px; letter-spacing: 1px; opacity: 0.9; line-height: 1.7; }
   .controls {
-    margin-top: 30px;
+    margin-top: 18px;
     font-size: 13px;
-    color: #999;
+    color: #aaa;
     text-align: center;
     letter-spacing: 1px;
   }
-  .controls b { color: #535353; }
+  .controls b { color: #ffd93d; }
+  .back {
+    position: fixed;
+    top: 16px; left: 16px;
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 14px;
+    border: 1px solid rgba(255,255,255,0.25);
+    z-index: 10;
+  }
+  .back:hover { background: rgba(0,0,0,0.7); }
+  #loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a2e;
+    color: #ffd93d;
+    font-size: 18px;
+    letter-spacing: 3px;
+    z-index: 5;
+  }
+  #loading.hidden { display: none; }
 </style>
 </head>
 <body>
-<h1>🦖 離線小恐龍 T-REX RUNNER</h1>
+<a href="../index.html" class="back">← 返回</a>
+
+<h1>🦖 3D 小恐龍 RUNNER</h1>
+
 <div id="gameContainer">
-  <canvas id="game" width="800" height="200"></canvas>
+  <div id="loading">Loading 3D 場景…</div>
   <div id="hud">
     <span class="hi">HI <span id="highScore">00000</span></span>
     <span id="score">00000</span>
   </div>
-  <div id="message">按 空白鍵 開始遊戲</div>
+  <div id="message">
+    <h2>3D RUNNER</h2>
+    <p><b>← →</b> / <b>A D</b> 左右閃避<br><b>空白 / ↑</b> 跳躍 &nbsp;|&nbsp; <b>↓</b> 蹲下 &nbsp;|&nbsp; <b>R</b> 重玩<br><br>按 <b>空白鍵</b> 開始</p>
+  </div>
 </div>
+
 <div class="controls">
-  <p><b>空白鍵 / ↑</b> 跳躍 &nbsp;|&nbsp; <b>↓</b> 蹲下 &nbsp;|&nbsp; <b>R</b> 重新開始</p>
+  <p><b>← →</b> 左右閃避 &nbsp;|&nbsp; <b>空白 / ↑</b> 跳躍 &nbsp;|&nbsp; <b>↓</b> 蹲 &nbsp;|&nbsp; <b>R</b> 重新開始</p>
 </div>
 
-<script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
-const GROUND = 170;
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
 
-// === 遊戲狀態 ===
-const game = {
-  state: 'idle', // idle, playing, gameover
-  speed: 6,
-  maxSpeed: 16,
-  score: 0,
-  highScore: parseInt(localStorage.getItem('dinoHighScore') || '0'),
-  groundOffset: 0,
-  cloudTimer: 0,
-  obstacleTimer: 80,
-  nightMode: false,
-  nightTransition: 0
-};
+const container = document.getElementById('gameContainer');
+const loadingEl = document.getElementById('loading');
+const messageEl = document.getElementById('message');
+const scoreEl = document.getElementById('score');
+const highScoreEl = document.getElementById('highScore');
 
-// === 玩家恐龍 ===
-const dino = {
-  x: 50,
-  y: GROUND - 47,
-  w: 44,
-  h: 47,
-  vy: 0,
-  ducking: false,
-  jumping: false,
-  legFrame: 0,
-  legTimer: 0,
-  dead: false
-};
+const W = container.clientWidth;
+const H = container.clientHeight;
 
-let obstacles = [];
-let clouds = [];
-let particles = [];
+// ============================================================
+// 程序化紋理（Canvas → CanvasTexture）
+// ============================================================
+function makeNoiseTexture(size, baseColor, noiseFns) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = baseColor;
+  ctx.fillRect(0, 0, size, size);
+  noiseFns.forEach(fn => fn(ctx, size));
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.anisotropy = 4;
+  return tex;
+}
 
-// === 工具 ===
-function rand(min, max) { return Math.random() * (max - min) + min; }
-function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-function pad(n, len) { return String(n).padStart(len, '0'); }
-
-// === 控制 ===
-const keys = {};
-document.addEventListener('keydown', e => {
-  const k = e.key.toLowerCase();
-  keys[k] = true;
-  if ([' ', 'arrowup', 'arrowdown'].includes(k)) e.preventDefault();
-
-  if (game.state === 'idle' && (k === ' ' || k === 'arrowup')) {
-    startGame();
-  } else if (game.state === 'gameover' && (k === ' ' || k === 'r' || k === 'arrowup')) {
-    startGame();
-  } else if (game.state === 'playing') {
-    if ((k === ' ' || k === 'arrowup') && !dino.jumping) {
-      dino.vy = -13;
-      dino.jumping = true;
-      dino.ducking = false;
+function sandSpecks(ctx, size) {
+  for (let i = 0; i < 4000; i++) {
+    const x = Math.random() * size, y = Math.random() * size;
+    const s = Math.random() * 2.5 + 0.4;
+    const r = 140 + Math.random() * 70;
+    const g = 110 + Math.random() * 60;
+    const b = 60 + Math.random() * 50;
+    ctx.fillStyle = `rgba(${r|0},${g|0},${b|0},${Math.random() * 0.6})`;
+    ctx.fillRect(x, y, s, s);
+  }
+}
+function sandPebbles(ctx, size) {
+  for (let i = 0; i < 80; i++) {
+    const x = Math.random() * size, y = Math.random() * size;
+    const r = 2 + Math.random() * 5;
+    ctx.fillStyle = `rgba(${80 + Math.random()*60|0},${60 + Math.random()*40|0},${40 + Math.random()*30|0},${0.55 + Math.random()*0.35})`;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = `rgba(255,255,255,0.2)`;
+    ctx.beginPath();
+    ctx.arc(x - r*0.4, y - r*0.4, r*0.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+function sandCracks(ctx, size) {
+  ctx.strokeStyle = 'rgba(60,40,20,0.35)';
+  for (let i = 0; i < 8; i++) {
+    ctx.lineWidth = 0.4 + Math.random();
+    ctx.beginPath();
+    ctx.moveTo(Math.random() * size, Math.random() * size);
+    for (let j = 0; j < 10; j++) ctx.lineTo(Math.random() * size, Math.random() * size);
+    ctx.stroke();
+  }
+}
+function laneMarker(ctx, size) {
+  // 跑道兩側淡淡的車轍
+  ctx.strokeStyle = 'rgba(120,90,40,0.25)';
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 2; i++) {
+    ctx.beginPath();
+    for (let y = 0; y < size; y += 4) {
+      const x = (i === 0 ? size * 0.3 : size * 0.7) + Math.sin(y * 0.1) * 3;
+      if (y === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     }
-    if (k === 'arrowdown') {
-      dino.ducking = true;
-      if (dino.jumping) dino.vy = Math.max(dino.vy, 6); // 快速下落
-    }
-  }
-});
-document.addEventListener('keyup', e => {
-  const k = e.key.toLowerCase();
-  keys[k] = false;
-  if (k === 'arrowdown') dino.ducking = false;
-});
-canvas.addEventListener('click', () => {
-  if (game.state === 'idle' || game.state === 'gameover') startGame();
-  else if (!dino.jumping) {
-    dino.vy = -13;
-    dino.jumping = true;
-  }
-});
-
-// === 繪製：恐龍 ===
-function drawDino() {
-  const c = game.nightMode ? '#f7f7f7' : '#535353';
-  ctx.fillStyle = c;
-
-  if (dino.dead) {
-    drawDinoDead();
-    return;
-  }
-
-  if (dino.ducking && !dino.jumping) {
-    drawDinoDuck();
-  } else {
-    drawDinoRun();
+    ctx.stroke();
   }
 }
-
-function drawDinoRun() {
-  const x = dino.x, y = dino.y;
-  // 身體（簡化像素恐龍）
-  ctx.fillRect(x + 22, y + 8, 22, 26);  // 頭
-  ctx.fillRect(x + 38, y + 12, 4, 4);   // 眼睛白底
-  // 眼睛
-  ctx.fillStyle = game.nightMode ? '#535353' : '#f7f7f7';
-  ctx.fillRect(x + 39, y + 13, 2, 2);
-  ctx.fillStyle = game.nightMode ? '#f7f7f7' : '#535353';
-
-  ctx.fillRect(x + 10, y + 22, 28, 16); // 上身
-  ctx.fillRect(x + 6, y + 26, 6, 12);   // 尾巴
-  ctx.fillRect(x + 14, y + 36, 14, 10); // 下身
-
-  // 腿（交替動畫）
-  if (dino.jumping) {
-    ctx.fillRect(x + 16, y + 40, 6, 7);
-    ctx.fillRect(x + 24, y + 40, 6, 7);
-  } else {
-    if (dino.legFrame === 0) {
-      ctx.fillRect(x + 16, y + 40, 6, 7);
-      ctx.fillRect(x + 26, y + 40, 4, 4);
-    } else {
-      ctx.fillRect(x + 14, y + 40, 4, 4);
-      ctx.fillRect(x + 24, y + 40, 6, 7);
-    }
-  }
-
-  // 手
-  ctx.fillRect(x + 32, y + 30, 4, 3);
-}
-
-function drawDinoDuck() {
-  const x = dino.x, y = dino.y + 20;
-  ctx.fillRect(x + 32, y + 4, 24, 14);  // 頭（向前伸）
-  ctx.fillRect(x + 50, y + 8, 4, 3);    // 眼框
-  ctx.fillStyle = game.nightMode ? '#535353' : '#f7f7f7';
-  ctx.fillRect(x + 51, y + 9, 2, 2);
-  ctx.fillStyle = game.nightMode ? '#f7f7f7' : '#535353';
-
-  ctx.fillRect(x + 8, y + 10, 32, 10);  // 身體
-  ctx.fillRect(x + 4, y + 12, 6, 6);    // 尾巴
-
-  // 蹲姿的腿
-  if (dino.legFrame === 0) {
-    ctx.fillRect(x + 14, y + 20, 6, 6);
-    ctx.fillRect(x + 28, y + 22, 4, 4);
-  } else {
-    ctx.fillRect(x + 12, y + 22, 4, 4);
-    ctx.fillRect(x + 26, y + 20, 6, 6);
-  }
-}
-
-function drawDinoDead() {
-  const x = dino.x, y = dino.y;
-  ctx.fillRect(x + 22, y + 8, 22, 26);
-  ctx.fillRect(x + 10, y + 22, 28, 16);
-  ctx.fillRect(x + 6, y + 26, 6, 12);
-  ctx.fillRect(x + 14, y + 36, 14, 10);
-  ctx.fillRect(x + 16, y + 40, 6, 7);
-  ctx.fillRect(x + 26, y + 40, 4, 4);
-
-  // X 眼睛
-  ctx.fillStyle = game.nightMode ? '#535353' : '#f7f7f7';
-  ctx.fillRect(x + 36, y + 12, 2, 2);
-  ctx.fillRect(x + 40, y + 12, 2, 2);
-  ctx.fillRect(x + 38, y + 14, 2, 2);
-  ctx.fillRect(x + 36, y + 16, 2, 2);
-  ctx.fillRect(x + 40, y + 16, 2, 2);
-}
-
-// === 繪製：仙人掌 / 翼龍 ===
-function drawObstacle(o) {
-  ctx.fillStyle = game.nightMode ? '#f7f7f7' : '#535353';
-  if (o.type === 'cactus_small') {
-    // 小仙人掌
-    for (let i = 0; i < o.count; i++) {
-      const cx = o.x + i * 18;
-      ctx.fillRect(cx + 6, o.y, 4, o.h);
-      ctx.fillRect(cx + 2, o.y + 6, 12, 8);
-      ctx.fillRect(cx + 2, o.y + 4, 4, 4);
-      ctx.fillRect(cx + 10, o.y + 4, 4, 4);
-    }
-  } else if (o.type === 'cactus_large') {
-    // 大仙人掌
-    for (let i = 0; i < o.count; i++) {
-      const cx = o.x + i * 28;
-      ctx.fillRect(cx + 10, o.y, 6, o.h);
-      ctx.fillRect(cx + 2, o.y + 10, 22, 12);
-      ctx.fillRect(cx + 2, o.y + 4, 6, 8);
-      ctx.fillRect(cx + 18, o.y + 4, 6, 8);
-    }
-  } else if (o.type === 'ptero') {
-    // 翼龍（翅膀動畫）
-    const wing = o.wingFrame;
-    const x = o.x, y = o.y;
-    ctx.fillRect(x + 14, y + 10, 20, 6);   // 身體
-    ctx.fillRect(x + 32, y + 6, 8, 4);     // 頭
-    ctx.fillRect(x + 40, y + 8, 6, 2);     // 嘴
-    if (wing === 0) {
-      // 翅膀向上
-      ctx.fillRect(x + 4, y, 24, 8);
-      ctx.fillRect(x + 12, y - 4, 12, 4);
-    } else {
-      // 翅膀向下
-      ctx.fillRect(x + 4, y + 14, 24, 8);
-      ctx.fillRect(x + 12, y + 22, 12, 4);
-    }
-  }
-}
-
-// === 繪製：雲 ===
-function drawCloud(c) {
-  ctx.fillStyle = game.nightMode ? '#888' : '#bbb';
-  ctx.fillRect(c.x + 4, c.y + 4, 38, 6);
-  ctx.fillRect(c.x, c.y + 8, 46, 4);
-  ctx.fillRect(c.x + 8, c.y, 22, 4);
-}
-
-// === 繪製：地面 ===
-function drawGround() {
-  ctx.fillStyle = game.nightMode ? '#f7f7f7' : '#535353';
-  // 地平線
-  ctx.fillRect(0, GROUND, W, 2);
-  // 地面碎石
-  const offset = -game.groundOffset % 50;
-  for (let i = 0; i < W / 50 + 2; i++) {
-    const x = i * 50 + offset;
-    ctx.fillRect(x + 10, GROUND + 6, 4, 2);
-    ctx.fillRect(x + 28, GROUND + 10, 3, 2);
-    ctx.fillRect(x + 40, GROUND + 4, 2, 2);
-  }
-}
-
-// === 繪製：星星與月亮（夜晚模式） ===
-function drawStars() {
-  if (!game.nightMode && game.nightTransition === 0) return;
-  const alpha = game.nightMode ? Math.min(1, game.nightTransition / 60) : Math.max(0, game.nightTransition / 60);
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = '#f7f7f7';
-  // 星星
-  const starPositions = [[80, 30], [180, 50], [280, 20], [400, 40], [520, 25], [620, 55], [720, 35]];
-  starPositions.forEach(([sx, sy]) => {
-    const offset = -game.groundOffset * 0.3 % W;
-    const x = (sx + offset + W) % W;
-    ctx.fillRect(x, sy, 2, 2);
-    ctx.fillRect(x - 2, sy + 2, 2, 2);
-    ctx.fillRect(x + 2, sy + 2, 2, 2);
-    ctx.fillRect(x, sy + 4, 2, 2);
-  });
-  // 月亮
-  ctx.fillRect(700, 30, 20, 4);
-  ctx.fillRect(694, 34, 24, 4);
-  ctx.fillRect(690, 38, 28, 12);
-  ctx.fillRect(694, 50, 24, 4);
-  ctx.fillRect(700, 54, 20, 4);
-  // 月亮陰影
-  ctx.fillStyle = game.nightMode ? '#202020' : '#f7f7f7';
-  ctx.fillRect(694, 34, 12, 4);
-  ctx.fillRect(690, 38, 14, 12);
-  ctx.fillRect(694, 50, 12, 4);
-  ctx.globalAlpha = 1;
-}
-
-// === 生成障礙物 ===
-function spawnObstacle() {
-  const types = ['cactus_small', 'cactus_small', 'cactus_large'];
-  if (game.score > 300) types.push('ptero');
-  if (game.score > 600) types.push('ptero', 'ptero');
-  const type = types[randInt(0, types.length - 1)];
-
-  if (type === 'cactus_small') {
-    const count = randInt(1, 3);
-    obstacles.push({
-      type, x: W + 20, y: GROUND - 26, w: 16 * count + 4, h: 26, count
-    });
-  } else if (type === 'cactus_large') {
-    const count = randInt(1, 2);
-    obstacles.push({
-      type, x: W + 20, y: GROUND - 36, w: 26 * count + 4, h: 36, count
-    });
-  } else {
-    // 翼龍（三種高度）
-    const heights = [GROUND - 80, GROUND - 50, GROUND - 30];
-    const py = heights[randInt(0, 2)];
-    obstacles.push({
-      type, x: W + 20, y: py, w: 46, h: 24, wingFrame: 0, wingTimer: 0
-    });
-  }
-}
-
-function spawnCloud() {
-  clouds.push({
-    x: W + 50,
-    y: rand(20, 80),
-    speed: rand(0.3, 0.8)
-  });
-}
-
-// === 碰撞檢測 ===
-function getDinoHitbox() {
-  if (dino.ducking && !dino.jumping) {
-    return { x: dino.x + 4, y: dino.y + 28, w: 56, h: 18 };
-  }
-  return { x: dino.x + 8, y: dino.y + 6, w: 32, h: 40 };
-}
-
-function getObstacleHitbox(o) {
-  if (o.type === 'cactus_small') {
-    return { x: o.x + 2, y: o.y + 2, w: 16 * o.count, h: o.h - 2 };
-  } else if (o.type === 'cactus_large') {
-    return { x: o.x + 2, y: o.y + 2, w: 26 * o.count, h: o.h - 2 };
-  } else {
-    return { x: o.x + 6, y: o.y + 4, w: 36, h: 16 };
-  }
-}
-
-function collide(a, b) {
-  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-}
-
-// === 更新 ===
-function update() {
-  if (game.state !== 'playing') return;
-
-  // 速度漸增
-  if (game.speed < game.maxSpeed) game.speed += 0.001;
-
-  // 分數
-  game.score += 0.1;
-  if (Math.floor(game.score) % 100 === 0 && Math.floor(game.score) > 0 && game.score - Math.floor(game.score) < 0.1) {
-    // 100分閃爍
-    flashScore();
-  }
-
-  // 切換日夜（每 700 分一次）
-  const shouldBeNight = Math.floor(game.score / 700) % 2 === 1;
-  if (shouldBeNight !== game.nightMode) {
-    if (game.nightTransition >= 60 || game.nightTransition === 0) {
-      game.nightMode = shouldBeNight;
-      game.nightTransition = 60;
-    }
-  }
-  if (game.nightTransition > 0) game.nightTransition--;
-
-  // 地面捲動
-  game.groundOffset += game.speed;
-
-  // 恐龍跳躍
-  if (dino.jumping) {
-    dino.vy += 0.6;
-    if (dino.ducking) dino.vy += 0.5; // 快速下落
-    dino.y += dino.vy;
-    if (dino.y >= GROUND - dino.h) {
-      dino.y = GROUND - dino.h;
-      dino.vy = 0;
-      dino.jumping = false;
-    }
-  }
-
-  // 跑步動畫
-  dino.legTimer++;
-  if (dino.legTimer >= 6) {
-    dino.legFrame = 1 - dino.legFrame;
-    dino.legTimer = 0;
-  }
-
-  // 障礙物
-  game.obstacleTimer--;
-  if (game.obstacleTimer <= 0) {
-    spawnObstacle();
-    const minGap = Math.max(50, 100 - game.speed * 3);
-    game.obstacleTimer = randInt(minGap, minGap + 60);
-  }
-  obstacles.forEach(o => {
-    o.x -= game.speed;
-    if (o.type === 'ptero') {
-      o.wingTimer++;
-      if (o.wingTimer >= 12) {
-        o.wingFrame = 1 - o.wingFrame;
-        o.wingTimer = 0;
+function scaleSkin(color1, color2) {
+  return (ctx, size) => {
+    const cell = 12;
+    for (let y = 0; y < size; y += cell) {
+      for (let x = 0; x < size; x += cell) {
+        const offset = (y / cell) % 2 === 0 ? 0 : cell / 2;
+        const cx = x + offset, cy = y + cell / 2;
+        const g = ctx.createRadialGradient(cx, cy, 1, cx, cy, cell);
+        const lit = Math.random() > 0.5;
+        g.addColorStop(0, lit ? color1 : color2);
+        g.addColorStop(0.7, color2);
+        g.addColorStop(1, 'rgba(0,0,0,0.4)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(cx, cy, cell * 0.62, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
-    // 碰撞
-    const db = getDinoHitbox();
-    const ob = getObstacleHitbox(o);
-    if (collide(db, ob)) gameOver();
-  });
-  obstacles = obstacles.filter(o => o.x + o.w > -20);
-
-  // 雲
-  game.cloudTimer--;
-  if (game.cloudTimer <= 0) {
-    spawnCloud();
-    game.cloudTimer = randInt(100, 250);
-  }
-  clouds.forEach(c => c.x -= c.speed);
-  clouds = clouds.filter(c => c.x + 50 > 0);
-
-  // 粒子
-  particles.forEach(p => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.life--;
-  });
-  particles = particles.filter(p => p.life > 0);
+    for (let i = 0; i < 200; i++) {
+      ctx.fillStyle = `rgba(20,40,20,${Math.random() * 0.4})`;
+      ctx.fillRect(Math.random() * size, Math.random() * size, 1.5, 1.5);
+    }
+  };
 }
-
-let scoreFlashTimer = 0;
-function flashScore() { scoreFlashTimer = 30; }
-
-// === 繪製 ===
-function draw() {
-  // 背景
-  ctx.fillStyle = game.nightMode ? '#202020' : '#f7f7f7';
-  ctx.fillRect(0, 0, W, H);
-
-  drawStars();
-  clouds.forEach(drawCloud);
-  drawGround();
-  obstacles.forEach(drawObstacle);
-  drawDino();
-
-  // 粒子（爆炸）
-  ctx.fillStyle = game.nightMode ? '#f7f7f7' : '#535353';
-  particles.forEach(p => ctx.fillRect(p.x, p.y, 3, 3));
-
-  // 遊戲結束畫面
-  if (game.state === 'gameover') {
-    ctx.fillStyle = game.nightMode ? '#f7f7f7' : '#535353';
-    ctx.font = 'bold 20px Courier New';
-    ctx.textAlign = 'center';
-    ctx.fillText('G A M E   O V E R', W/2, 60);
-    ctx.font = '14px Courier New';
-    ctx.fillText('按 空白鍵 / R 重新開始', W/2, 88);
-    // 重新開始圖標
-    ctx.strokeStyle = game.nightMode ? '#f7f7f7' : '#535353';
-    ctx.lineWidth = 2;
+function cactusBark(ctx, size) {
+  for (let i = 0; i < 6; i++) {
+    const x = (i / 6) * size;
+    const g = ctx.createLinearGradient(x - 8, 0, x + 8, 0);
+    g.addColorStop(0, 'rgba(20,60,20,0.4)');
+    g.addColorStop(0.5, 'rgba(40,90,40,0.0)');
+    g.addColorStop(1, 'rgba(20,60,20,0.4)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - 8, 0, 16, size);
+  }
+  for (let i = 0; i < 100; i++) {
+    ctx.fillStyle = `rgba(20,50,15,${0.2 + Math.random() * 0.4})`;
+    ctx.fillRect(Math.random() * size, Math.random() * size, 2 + Math.random() * 3, 1);
+  }
+  for (let i = 0; i < 30; i++) {
+    ctx.fillStyle = `rgba(180,220,140,${Math.random() * 0.3})`;
+    ctx.fillRect(Math.random() * size, Math.random() * size, 2, 4);
+  }
+}
+function rockSurface(ctx, size) {
+  for (let i = 0; i < 200; i++) {
+    const r = 3 + Math.random() * 18;
+    const x = Math.random() * size, y = Math.random() * size;
+    const shade = 70 + Math.random() * 80;
+    const g = ctx.createRadialGradient(x - r*0.3, y - r*0.3, 1, x, y, r);
+    g.addColorStop(0, `rgba(${shade+30},${shade+25},${shade+20},0.9)`);
+    g.addColorStop(1, `rgba(${shade-20},${shade-25},${shade-30},0.7)`);
+    ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.arc(W/2, 115, 10, -Math.PI/2, Math.PI);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(W/2 - 4, -1 + 115);
-    ctx.lineTo(W/2 + 2, -1 + 115);
-    ctx.lineTo(W/2 + 2, -7 + 115);
-    ctx.closePath();
-    ctx.fillStyle = game.nightMode ? '#f7f7f7' : '#535353';
+    ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
   }
 }
 
-// === HUD ===
-function updateHUD() {
-  const scoreEl = document.getElementById('score');
-  const score = Math.floor(game.score);
-  if (scoreFlashTimer > 0) {
-    scoreEl.style.color = scoreFlashTimer % 8 < 4 ? '#999' : '#535353';
-    scoreFlashTimer--;
-  } else {
-    scoreEl.style.color = game.nightMode ? '#999' : '#535353';
+const TEX = {
+  ground: makeNoiseTexture(512, '#c9a96e', [sandSpecks, sandPebbles, sandCracks, laneMarker]),
+  dinoSkin: makeNoiseTexture(256, '#3a7d3a', [scaleSkin('#7bbf5a', '#3a6d2c')]),
+  dinoBelly: makeNoiseTexture(128, '#b8d8a0', [scaleSkin('#d4e8b8', '#8eb070')]),
+  cactus: makeNoiseTexture(256, '#3d7a3d', [cactusBark]),
+  rock: makeNoiseTexture(256, '#888080', [rockSurface]),
+};
+TEX.ground.repeat.set(8, 24);
+TEX.dinoSkin.repeat.set(2, 2);
+TEX.cactus.repeat.set(1, 2);
+
+// ============================================================
+// Scene / Camera / Renderer
+// ============================================================
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xcbe2ff);
+scene.fog = new THREE.Fog(0xcbe2ff, 30, 90);
+
+const camera = new THREE.PerspectiveCamera(58, W / H, 0.1, 200);
+// 第三人稱：鏡頭在恐龍後方上方
+camera.position.set(0, 5.5, 8);
+camera.lookAt(0, 1.8, -6);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(W, H);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+container.appendChild(renderer.domElement);
+
+window.addEventListener('resize', () => {
+  const w = container.clientWidth, h = container.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+
+const sun = new THREE.DirectionalLight(0xffeec8, 1.1);
+sun.position.set(8, 18, 4);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -14;
+sun.shadow.camera.right = 14;
+sun.shadow.camera.top = 14;
+sun.shadow.camera.bottom = -14;
+sun.shadow.camera.near = 0.5;
+sun.shadow.camera.far = 60;
+sun.shadow.bias = -0.0008;
+scene.add(sun);
+
+const hemi = new THREE.HemisphereLight(0xbcdfff, 0x6a5230, 0.55);
+scene.add(hemi);
+
+const ambient = new THREE.AmbientLight(0xffffff, 0.25);
+scene.add(ambient);
+
+// 地面 — 細長跑道
+const groundGeom = new THREE.PlaneGeometry(40, 220, 16, 80);
+const gpos = groundGeom.attributes.position;
+for (let i = 0; i < gpos.count; i++) {
+  gpos.setZ(i, (Math.random() - 0.5) * 0.15);
+}
+groundGeom.computeVertexNormals();
+const groundMat = new THREE.MeshStandardMaterial({
+  map: TEX.ground, roughness: 0.95, metalness: 0
+});
+const ground = new THREE.Mesh(groundGeom, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.set(0, 0, -80);
+ground.receiveShadow = true;
+scene.add(ground);
+
+// 賽道邊線（黃色虛線 + 白色實線外緣）
+function makeDashTexture() {
+  const c = document.createElement('canvas');
+  c.width = 8; c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#ffd93d';
+  ctx.fillRect(0, 0, 8, 32);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(1, 60);
+  return tex;
+}
+const dashTex = makeDashTexture();
+const dashMat = new THREE.MeshStandardMaterial({
+  map: dashTex, transparent: true,
+  emissive: 0xffd93d, emissiveIntensity: 0.6,
+  roughness: 0.7, side: THREE.DoubleSide
+});
+const dashGeom = new THREE.PlaneGeometry(0.35, 240);
+for (const sx of [-4.3, 4.3]) {
+  const line = new THREE.Mesh(dashGeom, dashMat);
+  line.rotation.x = -Math.PI / 2;
+  line.position.set(sx, 0.02, -80);
+  scene.add(line);
+}
+const edgeMat = new THREE.MeshStandardMaterial({
+  color: 0xfffaef, emissive: 0xfffaef, emissiveIntensity: 0.25, roughness: 0.5
+});
+const edgeGeom = new THREE.BoxGeometry(0.12, 0.06, 240);
+for (const sx of [-4.65, 4.65]) {
+  const edge = new THREE.Mesh(edgeGeom, edgeMat);
+  edge.position.set(sx, 0.03, -80);
+  scene.add(edge);
+}
+
+// 遠山地平線
+function makeMountainRange() {
+  const group = new THREE.Group();
+  const rockMat = new THREE.MeshStandardMaterial({
+    map: TEX.rock, roughness: 1, metalness: 0, color: 0x9a9080
+  });
+  for (let i = 0; i < 24; i++) {
+    const h = 5 + Math.random() * 10;
+    const r = 4 + Math.random() * 7;
+    const geom = new THREE.ConeGeometry(r, h, 5);
+    const m = new THREE.Mesh(geom, rockMat);
+    const ang = (i / 24) * Math.PI - Math.PI / 2;
+    m.position.set(Math.sin(ang) * 60, h / 2 - 0.5, -55 + Math.cos(ang) * 8);
+    m.rotation.y = Math.random() * Math.PI;
+    group.add(m);
   }
-  scoreEl.textContent = pad(score, 5);
-  document.getElementById('highScore').textContent = pad(game.highScore, 5);
-  document.body.style.background = game.nightMode ? '#202020' : '#f7f7f7';
-  document.querySelector('h1').style.color = game.nightMode ? '#f7f7f7' : '#535353';
-  document.getElementById('gameContainer').style.background = game.nightMode ? '#202020' : '#f7f7f7';
+  return group;
+}
+scene.add(makeMountainRange());
+
+// 太陽 sprite
+const sunMat = new THREE.SpriteMaterial({
+  color: 0xffffaa, transparent: true, opacity: 0.7,
+  blending: THREE.AdditiveBlending
+});
+const sunSprite = new THREE.Sprite(sunMat);
+sunSprite.scale.set(6, 6, 1);
+sunSprite.position.set(10, 16, -45);
+scene.add(sunSprite);
+
+// 雲
+const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 });
+function makeCloud() {
+  const group = new THREE.Group();
+  const count = 3 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < count; i++) {
+    const r = 0.6 + Math.random() * 0.8;
+    const s = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), cloudMat);
+    s.position.set(i * 0.9 - count * 0.4, Math.random() * 0.4, Math.random() * 0.3);
+    group.add(s);
+  }
+  return group;
+}
+const clouds = [];
+for (let i = 0; i < 12; i++) {
+  const c = makeCloud();
+  c.position.set(-15 + Math.random() * 30, 8 + Math.random() * 4, -i * 8 - 5);
+  scene.add(c);
+  clouds.push(c);
 }
 
-// === 遊戲循環 ===
-function loop() {
-  update();
-  draw();
-  updateHUD();
-  requestAnimationFrame(loop);
+// ============================================================
+// T-Rex
+// ============================================================
+function buildDino() {
+  const root = new THREE.Group();
+
+  const skinMat = new THREE.MeshStandardMaterial({
+    map: TEX.dinoSkin, roughness: 0.85, metalness: 0.1, color: 0x88c060
+  });
+  const bellyMat = new THREE.MeshStandardMaterial({
+    map: TEX.dinoBelly, roughness: 0.9
+  });
+  const darkMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.4 });
+  const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 });
+  const teethMat = new THREE.MeshStandardMaterial({ color: 0xfff8dc, roughness: 0.5 });
+
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 1.1), skinMat);
+  body.position.set(0, 1.7, 0);
+  body.castShadow = true;
+  root.add(body);
+
+  const belly = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.9, 0.95), bellyMat);
+  belly.position.set(0.05, 1.45, 0);
+  belly.castShadow = true;
+  root.add(belly);
+
+  const neck = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.1, 0.7), skinMat);
+  neck.position.set(0.7, 2.4, 0);
+  neck.rotation.z = -0.25;
+  neck.castShadow = true;
+  root.add(neck);
+
+  const headGroup = new THREE.Group();
+  headGroup.position.set(1.2, 3.0, 0);
+  root.add(headGroup);
+
+  const head = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.9, 0.9), skinMat);
+  head.castShadow = true;
+  headGroup.add(head);
+
+  const jaw = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.3, 0.85), skinMat);
+  jaw.position.set(0.2, -0.5, 0);
+  jaw.castShadow = true;
+  headGroup.add(jaw);
+
+  for (let i = 0; i < 4; i++) {
+    const t = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.18, 4), teethMat);
+    t.position.set(0.1 + i * 0.18, -0.32, 0.4);
+    t.rotation.x = Math.PI;
+    headGroup.add(t);
+    const t2 = t.clone();
+    t2.position.z = -0.4;
+    headGroup.add(t2);
+  }
+
+  for (let side of [-1, 1]) {
+    const eyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), whiteMat);
+    eyeWhite.position.set(0.35, 0.2, side * 0.42);
+    headGroup.add(eyeWhite);
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), darkMat);
+    pupil.position.set(0.48, 0.2, side * 0.46);
+    headGroup.add(pupil);
+  }
+
+  const nostril = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), darkMat);
+  nostril.position.set(0.7, 0.15, 0.25);
+  headGroup.add(nostril);
+  const nostril2 = nostril.clone();
+  nostril2.position.z = -0.25;
+  headGroup.add(nostril2);
+
+  const tail1 = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.6), skinMat);
+  tail1.position.set(-1.0, 1.8, 0);
+  tail1.rotation.z = 0.15;
+  tail1.castShadow = true;
+  root.add(tail1);
+  const tail2 = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.4), skinMat);
+  tail2.position.set(-1.7, 2.0, 0);
+  tail2.rotation.z = 0.3;
+  tail2.castShadow = true;
+  root.add(tail2);
+
+  for (let side of [-1, 1]) {
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.45, 0.18), skinMat);
+    arm.position.set(0.6, 1.85, side * 0.55);
+    arm.castShadow = true;
+    root.add(arm);
+    const claw = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.18, 4), teethMat);
+    claw.position.set(0.6, 1.55, side * 0.55);
+    root.add(claw);
+  }
+
+  const legGroup = new THREE.Group();
+  root.add(legGroup);
+
+  function makeLeg(zOffset) {
+    const leg = new THREE.Group();
+    const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.9, 0.45), skinMat);
+    thigh.position.y = -0.45;
+    thigh.castShadow = true;
+    leg.add(thigh);
+    const shin = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.7, 0.38), skinMat);
+    shin.position.y = -1.2;
+    shin.castShadow = true;
+    leg.add(shin);
+    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.18, 0.4), darkMat);
+    foot.position.set(0.08, -1.6, 0);
+    foot.castShadow = true;
+    leg.add(foot);
+    for (let i = 0; i < 3; i++) {
+      const claw = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.12, 4), teethMat);
+      claw.position.set(0.32, -1.62, -0.12 + i * 0.12);
+      claw.rotation.x = Math.PI / 2;
+      claw.rotation.z = -Math.PI / 2;
+      leg.add(claw);
+    }
+    leg.position.set(0, 1.6, zOffset);
+    return leg;
+  }
+  const legL = makeLeg(-0.32);
+  const legR = makeLeg(0.32);
+  legGroup.add(legL, legR);
+
+  for (let i = 0; i < 6; i++) {
+    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.3, 5), skinMat);
+    spike.position.set(-0.9 + i * 0.35, 2.55, 0);
+    spike.castShadow = true;
+    root.add(spike);
+  }
+
+  root.userData = { legL, legR, headGroup, tail1, tail2 };
+  return root;
 }
 
-// === 開始 / 結束 ===
+const dino = buildDino();
+dino.position.set(0, 0, 0);
+// 讓恐龍面向 -Z 方向（往前跑進螢幕）
+dino.rotation.y = Math.PI / 2;
+scene.add(dino);
+
+// ============================================================
+// 障礙物
+// ============================================================
+const cactusMat = new THREE.MeshStandardMaterial({
+  map: TEX.cactus, roughness: 0.85, color: 0x4d8a4d
+});
+function makeSmallCactus() {
+  const g = new THREE.Group();
+  const cnt = 1 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < cnt; i++) {
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.32, 1.2, 10), cactusMat);
+    trunk.position.set(i * 0.7, 0.6, 0);
+    trunk.castShadow = true;
+    g.add(trunk);
+    const top = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), cactusMat);
+    top.position.set(i * 0.7, 1.2, 0);
+    top.castShadow = true;
+    g.add(top);
+    for (let s = 0; s < 6; s++) {
+      const sp = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.18, 4),
+        new THREE.MeshStandardMaterial({ color: 0xeae0a8 }));
+      const ang = (s / 6) * Math.PI * 2;
+      sp.position.set(i * 0.7 + Math.cos(ang) * 0.32, 0.4 + s * 0.12, Math.sin(ang) * 0.32);
+      sp.rotation.z = Math.cos(ang) * Math.PI / 2;
+      sp.rotation.x = Math.sin(ang) * Math.PI / 2;
+      g.add(sp);
+    }
+  }
+  g.userData = { type: 'cactus_small', w: cnt * 0.7 + 0.5, h: 1.5 };
+  return g;
+}
+function makeLargeCactus() {
+  const g = new THREE.Group();
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, 2.4, 12), cactusMat);
+  trunk.position.y = 1.2;
+  trunk.castShadow = true;
+  g.add(trunk);
+  for (let side of [-1, 1]) {
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.9, 10), cactusMat);
+    arm.position.set(side * 0.55, 1.4, 0);
+    arm.rotation.z = side * Math.PI / 2;
+    arm.castShadow = true;
+    g.add(arm);
+    const armUp = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.7, 10), cactusMat);
+    armUp.position.set(side * 0.95, 1.75, 0);
+    armUp.castShadow = true;
+    g.add(armUp);
+    const armTip = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), cactusMat);
+    armTip.position.set(side * 0.95, 2.1, 0);
+    armTip.castShadow = true;
+    g.add(armTip);
+  }
+  const top = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 10), cactusMat);
+  top.position.y = 2.4;
+  top.castShadow = true;
+  g.add(top);
+  for (let i = 0; i < 24; i++) {
+    const sp = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.22, 4),
+      new THREE.MeshStandardMaterial({ color: 0xeae0a8 }));
+    const ang = Math.random() * Math.PI * 2;
+    const yPos = Math.random() * 2.2 + 0.3;
+    sp.position.set(Math.cos(ang) * 0.55, yPos, Math.sin(ang) * 0.55);
+    sp.rotation.z = Math.cos(ang) * Math.PI / 2;
+    sp.rotation.x = Math.sin(ang) * Math.PI / 2;
+    g.add(sp);
+  }
+  g.userData = { type: 'cactus_large', w: 1.6, h: 2.7 };
+  return g;
+}
+function makeRock() {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ map: TEX.rock, roughness: 1, color: 0x9a8e7e });
+  const main = new THREE.Mesh(new THREE.DodecahedronGeometry(0.7), mat);
+  main.position.y = 0.5;
+  main.rotation.set(Math.random(), Math.random(), Math.random());
+  main.castShadow = true;
+  g.add(main);
+  const side = new THREE.Mesh(new THREE.DodecahedronGeometry(0.4), mat);
+  side.position.set(0.6, 0.3, 0.2);
+  side.castShadow = true;
+  g.add(side);
+  g.userData = { type: 'rock', w: 1.4, h: 1.0 };
+  return g;
+}
+function makePtero() {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({
+    map: TEX.dinoSkin, color: 0x6a5a3a, roughness: 0.7
+  });
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 10), mat);
+  body.scale.set(0.7, 0.7, 1.8);
+  body.castShadow = true;
+  g.add(body);
+  // 頭朝向 +Z（朝玩家）
+  const head = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.5, 8), mat);
+  head.position.set(0, 0.1, 0.6);
+  head.rotation.x = Math.PI / 2;
+  head.castShadow = true;
+  g.add(head);
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.35, 6),
+    new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 0.5 }));
+  beak.position.set(0, 0.1, 0.95);
+  beak.rotation.x = Math.PI / 2;
+  g.add(beak);
+  // 翅膀（沿 X 軸左右伸展）
+  const wingL = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.06, 1.4), mat);
+  wingL.position.set(0.5, 0.1, 0);
+  wingL.castShadow = true;
+  g.add(wingL);
+  const wingR = wingL.clone();
+  wingR.position.x = -0.5;
+  g.add(wingR);
+  g.userData = { type: 'ptero', w: 1.6, h: 0.8, wingL, wingR, wingTime: 0 };
+  return g;
+}
+
+// 邊景裝飾（不撞）
+const grassMat = new THREE.MeshStandardMaterial({ color: 0x5a8a3a, roughness: 0.9 });
+function makeGrassTuft() {
+  const g = new THREE.Group();
+  for (let i = 0; i < 5; i++) {
+    const blade = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.4, 4), grassMat);
+    blade.position.set((Math.random() - 0.5) * 0.4, 0.2, (Math.random() - 0.5) * 0.4);
+    blade.rotation.z = (Math.random() - 0.5) * 0.4;
+    g.add(blade);
+  }
+  return g;
+}
+
+const decorations = [];
+for (let i = 0; i < 40; i++) {
+  const grass = makeGrassTuft();
+  const side = Math.random() < 0.5 ? -1 : 1;
+  grass.position.set(side * (6 + Math.random() * 6), 0, -i * 2.5 + Math.random() * 1.5);
+  scene.add(grass);
+  decorations.push(grass);
+}
+for (let i = 0; i < 16; i++) {
+  const rk = makeRock();
+  const side = Math.random() < 0.5 ? -1 : 1;
+  rk.position.set(side * (7 + Math.random() * 5), 0, -i * 6 + Math.random() * 4);
+  rk.scale.setScalar(0.6 + Math.random() * 0.7);
+  rk.rotation.y = Math.random() * Math.PI * 2;
+  scene.add(rk);
+  decorations.push(rk);
+}
+
+// ============================================================
+// 遊戲狀態
+// ============================================================
+const DINO_HEIGHT = 3.4;
+const SPAWN_Z = -55;
+const DESPAWN_Z = 10;
+const LANE_HALF = 4.2;
+
+const state = {
+  mode: 'idle',
+  speed: 0.18,
+  maxSpeed: 0.42,
+  score: 0,
+  highScore: parseInt(localStorage.getItem('dino3dHighScore') || '0', 10),
+  spawnTimer: 60,
+  scrollOffset: 0,
+  night: false,
+  nightTransition: 0,
+};
+
+const dinoState = {
+  vy: 0,
+  y: 0,
+  x: 0,
+  vx: 0,
+  jumping: false,
+  ducking: false,
+  legPhase: 0,
+};
+
+const keysHeld = { left: false, right: false };
+const obstacles = [];
+
+function reset() {
+  state.speed = 0.18;
+  state.score = 0;
+  state.spawnTimer = 60;
+  state.scrollOffset = 0;
+  state.night = false;
+  state.nightTransition = 0;
+  dinoState.vy = 0;
+  dinoState.y = 0;
+  dinoState.x = 0;
+  dinoState.vx = 0;
+  dinoState.jumping = false;
+  dinoState.ducking = false;
+  keysHeld.left = false;
+  keysHeld.right = false;
+  obstacles.forEach(o => scene.remove(o));
+  obstacles.length = 0;
+  dino.position.set(0, 0, 0);
+  dino.scale.y = 1;
+  dino.rotation.set(0, Math.PI / 2, 0);
+  applyDayNight(0);
+}
+
 function startGame() {
-  game.state = 'playing';
-  game.speed = 6;
-  game.score = 0;
-  game.obstacleTimer = 80;
-  game.cloudTimer = 50;
-  game.nightMode = false;
-  game.nightTransition = 0;
-  dino.x = 50;
-  dino.y = GROUND - dino.h;
-  dino.vy = 0;
-  dino.jumping = false;
-  dino.ducking = false;
-  dino.dead = false;
-  obstacles = [];
-  clouds = [];
-  particles = [];
-  document.getElementById('message').classList.add('hidden');
+  reset();
+  state.mode = 'playing';
+  messageEl.classList.add('hidden');
 }
 
 function gameOver() {
-  game.state = 'gameover';
-  dino.dead = true;
-  // 爆炸粒子
-  for (let i = 0; i < 12; i++) {
-    particles.push({
-      x: dino.x + 25,
-      y: dino.y + 25,
-      vx: rand(-3, 3),
-      vy: rand(-4, 1),
-      life: 30
-    });
+  state.mode = 'gameover';
+  dino.rotation.z = -0.6;
+  if (Math.floor(state.score) > state.highScore) {
+    state.highScore = Math.floor(state.score);
+    localStorage.setItem('dino3dHighScore', state.highScore);
   }
-  if (Math.floor(game.score) > game.highScore) {
-    game.highScore = Math.floor(game.score);
-    localStorage.setItem('dinoHighScore', game.highScore);
-  }
+  messageEl.querySelector('h2').textContent = 'GAME OVER';
+  messageEl.querySelector('p').innerHTML =
+    `本回合 <b style="color:#ffd93d">${Math.floor(state.score)}</b> &nbsp;|&nbsp; 最高 <b style="color:#ffd93d">${state.highScore}</b><br>按 <b>空白鍵</b> / <b>R</b> 重新開始`;
+  messageEl.classList.remove('hidden');
 }
 
-// 初始畫面
-function drawIdle() {
-  ctx.fillStyle = '#f7f7f7';
-  ctx.fillRect(0, 0, W, H);
-  drawGround();
-  drawDino();
+function spawnObstacle() {
+  const r = Math.random();
+  let type;
+  if (state.score > 300 && r < 0.18) type = 'ptero';
+  else if (r < 0.2) type = 'cactus_large';
+  else if (r < 0.35) type = 'rock';
+  else type = 'cactus_small';
+
+  let mesh;
+  if (type === 'cactus_small') mesh = makeSmallCactus();
+  else if (type === 'cactus_large') mesh = makeLargeCactus();
+  else if (type === 'rock') mesh = makeRock();
+  else mesh = makePtero();
+
+  const lane = (Math.random() - 0.5) * 2 * 3.4; // -3.4 ~ +3.4
+
+  if (type === 'ptero') {
+    // 翼龍會橫向飛來，高度可蹲過
+    mesh.position.set(lane, 1.2 + Math.random() * 0.6, SPAWN_Z);
+  } else {
+    mesh.position.set(lane, 0, SPAWN_Z);
+    mesh.rotation.y = Math.random() * Math.PI;
+  }
+  scene.add(mesh);
+  obstacles.push(mesh);
 }
-drawIdle();
-loop();
+
+function checkCollision(obs) {
+  const minY = dino.position.y + (dinoState.ducking ? 0.3 : 0.4);
+  const maxY = dino.position.y + (dinoState.ducking ? 1.2 : DINO_HEIGHT - 0.4);
+  const dinoBox = new THREE.Box3(
+    new THREE.Vector3(dino.position.x - 0.55, minY, dino.position.z - 0.7),
+    new THREE.Vector3(dino.position.x + 0.55, maxY, dino.position.z + 0.7)
+  );
+  const obsBox = new THREE.Box3().setFromObject(obs);
+  obsBox.expandByScalar(-0.15);
+  return dinoBox.intersectsBox(obsBox);
+}
+
+// ============================================================
+// 日夜
+// ============================================================
+function applyDayNight(t) {
+  const dayBg = new THREE.Color(0xcbe2ff);
+  const nightBg = new THREE.Color(0x0e1230);
+  const bg = dayBg.clone().lerp(nightBg, t);
+  scene.background = bg;
+  scene.fog.color = bg;
+
+  sun.intensity = 1.1 - t * 0.9;
+  sun.color.setHex(t > 0.5 ? 0xaab8ff : 0xffeec8);
+  hemi.intensity = 0.55 - t * 0.35;
+  hemi.color.setHex(t > 0.5 ? 0x4a6090 : 0xbcdfff);
+  ambient.intensity = 0.25 + t * 0.15;
+
+  sunSprite.material.color.setHex(t > 0.5 ? 0xeeeeff : 0xffffaa);
+  sunSprite.material.opacity = 0.7 - t * 0.3;
+  cloudMat.opacity = 0.9 - t * 0.5;
+}
+
+// ============================================================
+// 控制
+// ============================================================
+window.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
+
+  // R 任何時候都重玩
+  if (k === 'r') {
+    startGame();
+    return;
+  }
+
+  if (state.mode === 'idle' && (k === ' ' || k === 'arrowup')) {
+    startGame();
+    return;
+  }
+  if (state.mode === 'gameover' && (k === ' ' || k === 'arrowup')) {
+    startGame();
+    return;
+  }
+  if (state.mode === 'playing') {
+    if ((k === ' ' || k === 'arrowup' || k === 'w') && !dinoState.jumping) {
+      dinoState.vy = 0.34;
+      dinoState.jumping = true;
+      dinoState.ducking = false;
+    }
+    if (k === 'arrowdown' || k === 's') {
+      dinoState.ducking = true;
+      if (dinoState.jumping) dinoState.vy = Math.min(dinoState.vy, -0.1);
+    }
+    if (k === 'arrowleft' || k === 'a') keysHeld.left = true;
+    if (k === 'arrowright' || k === 'd') keysHeld.right = true;
+  }
+});
+
+window.addEventListener('keyup', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'arrowdown' || k === 's') dinoState.ducking = false;
+  if (k === 'arrowleft' || k === 'a') keysHeld.left = false;
+  if (k === 'arrowright' || k === 'd') keysHeld.right = false;
+});
+
+renderer.domElement.addEventListener('click', () => {
+  if (state.mode === 'idle' || state.mode === 'gameover') startGame();
+  else if (!dinoState.jumping) {
+    dinoState.vy = 0.34;
+    dinoState.jumping = true;
+  }
+});
+
+// 觸控滑動：上滑跳、下滑蹲、左右移動
+let touchStart = null;
+renderer.domElement.addEventListener('touchstart', e => {
+  if (e.touches.length) touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+});
+renderer.domElement.addEventListener('touchmove', e => {
+  if (!touchStart || !e.touches.length || state.mode !== 'playing') return;
+  const dx = e.touches[0].clientX - touchStart.x;
+  if (Math.abs(dx) > 8) {
+    keysHeld.left = dx < -20;
+    keysHeld.right = dx > 20;
+  }
+});
+renderer.domElement.addEventListener('touchend', e => {
+  if (!touchStart) return;
+  keysHeld.left = false;
+  keysHeld.right = false;
+  if (e.changedTouches.length) {
+    const dy = e.changedTouches[0].clientY - touchStart.y;
+    if (Math.abs(dy) > 30 && state.mode === 'playing') {
+      if (dy < 0 && !dinoState.jumping) {
+        dinoState.vy = 0.34;
+        dinoState.jumping = true;
+      } else if (dy > 0) {
+        dinoState.ducking = true;
+        setTimeout(() => dinoState.ducking = false, 400);
+      }
+    } else if (state.mode !== 'playing') {
+      startGame();
+    }
+  }
+  touchStart = null;
+});
+
+// ============================================================
+// 主迴圈
+// ============================================================
+const clock = new THREE.Clock();
+
+function update(dt) {
+  if (state.mode === 'playing') {
+    if (state.speed < state.maxSpeed) state.speed += 0.00006;
+    state.score += state.speed * 1.0;
+
+    const shouldNight = Math.floor(state.score / 600) % 2 === 1;
+    if (shouldNight !== state.night) state.night = shouldNight;
+  }
+
+  const target = state.night ? 1 : 0;
+  state.nightTransition += (target - state.nightTransition) * 0.02;
+  applyDayNight(state.nightTransition);
+
+  if (state.mode === 'playing') {
+    // 跳躍
+    if (dinoState.jumping) {
+      dinoState.vy -= 0.018;
+      if (dinoState.ducking) dinoState.vy -= 0.015;
+      dinoState.y += dinoState.vy;
+      if (dinoState.y <= 0) {
+        dinoState.y = 0;
+        dinoState.vy = 0;
+        dinoState.jumping = false;
+      }
+    }
+
+    // 左右移動
+    const ax = 0.045;
+    if (keysHeld.left) dinoState.vx -= ax;
+    if (keysHeld.right) dinoState.vx += ax;
+    dinoState.vx *= 0.82;
+    dinoState.x = Math.max(-LANE_HALF, Math.min(LANE_HALF, dinoState.x + dinoState.vx));
+    if (Math.abs(dinoState.x) >= LANE_HALF) dinoState.vx = 0;
+
+    dino.position.x = dinoState.x;
+    dino.position.y = dinoState.y;
+
+    // 身體輕微側傾
+    const targetTilt = -dinoState.vx * 4;
+    dino.rotation.x += (targetTilt - dino.rotation.x) * 0.2;
+
+    // 蹲下：壓扁 + 低頭
+    const targetScale = dinoState.ducking && !dinoState.jumping ? 0.55 : 1;
+    dino.scale.y += (targetScale - dino.scale.y) * 0.25;
+    if (dino.userData.headGroup) {
+      const tRot = dinoState.ducking ? -0.4 : 0;
+      dino.userData.headGroup.rotation.z += (tRot - dino.userData.headGroup.rotation.z) * 0.2;
+    }
+
+    // 跑步動畫
+    dinoState.legPhase += state.speed * 4;
+    if (!dinoState.jumping) {
+      const swing = Math.sin(dinoState.legPhase) * 0.55;
+      dino.userData.legL.rotation.z = swing;
+      dino.userData.legR.rotation.z = -swing;
+    } else {
+      dino.userData.legL.rotation.z = 0.3;
+      dino.userData.legR.rotation.z = -0.3;
+    }
+    if (dino.userData.tail1) {
+      dino.userData.tail1.rotation.z = 0.15 + Math.sin(dinoState.legPhase * 0.5) * 0.08;
+      dino.userData.tail2.rotation.z = 0.3 + Math.sin(dinoState.legPhase * 0.5 + 0.5) * 0.12;
+    }
+
+    // 生成
+    state.spawnTimer--;
+    if (state.spawnTimer <= 0) {
+      spawnObstacle();
+      const baseGap = Math.max(28, 70 - state.speed * 110);
+      state.spawnTimer = baseGap + Math.random() * 35;
+    }
+  }
+
+  // 地面紋理捲動（沿 V 軸 = Z 方向）
+  state.scrollOffset += state.speed;
+  TEX.ground.offset.y = state.scrollOffset * 0.05;
+  dashTex.offset.y = state.scrollOffset * 0.06;
+
+  // 障礙物向 +Z（朝玩家）移動
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const o = obstacles[i];
+    o.position.z += state.speed;
+    if (o.userData.type === 'ptero') {
+      o.userData.wingTime += dt * 8;
+      const ang = Math.sin(o.userData.wingTime) * 0.6;
+      o.userData.wingL.rotation.z = ang;
+      o.userData.wingR.rotation.z = -ang;
+      o.position.y += Math.sin(o.userData.wingTime * 0.8) * 0.02;
+    }
+    if (o.position.z > DESPAWN_Z) {
+      scene.remove(o);
+      obstacles.splice(i, 1);
+      continue;
+    }
+    if (state.mode === 'playing' && checkCollision(o)) {
+      gameOver();
+    }
+  }
+
+  // 雲飄
+  clouds.forEach(c => {
+    c.position.z += state.speed * 0.3;
+    if (c.position.z > 8) c.position.z = -90;
+  });
+
+  // 邊景循環
+  decorations.forEach(d => {
+    d.position.z += state.speed;
+    if (d.position.z > 12) d.position.z -= 100;
+  });
+}
+
+function updateHUD() {
+  scoreEl.textContent = String(Math.floor(state.score)).padStart(5, '0');
+  highScoreEl.textContent = String(state.highScore).padStart(5, '0');
+  scoreEl.style.color = state.nightTransition > 0.5 ? '#ffd93d' : '#fff';
+}
+
+function animate() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  update(dt);
+  updateHUD();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+loadingEl.classList.add('hidden');
+applyDayNight(0);
+animate();
 </script>
 </body>
 </html>
