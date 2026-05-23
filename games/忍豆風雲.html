@@ -7,7 +7,7 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: radial-gradient(circle at 50% 0%, #243b6b 0%, #16213e 45%, #0c1024 100%);
     font-family: 'Microsoft JhengHei', sans-serif;
     min-height: 100vh;
     display: flex;
@@ -15,65 +15,92 @@
     justify-content: center;
     align-items: center;
     color: #fff;
-    overflow: hidden;
   }
   h1 {
-    font-size: 28px;
-    margin-bottom: 8px;
-    letter-spacing: 4px;
-    text-shadow: 0 0 16px #ff6b6b;
+    font-size: 30px;
+    margin-bottom: 6px;
+    letter-spacing: 6px;
+    text-shadow: 0 0 18px #ff6b6b, 0 2px 0 #000;
   }
   .hint {
     font-size: 13px;
-    opacity: 0.8;
+    opacity: 0.75;
     margin-bottom: 12px;
     letter-spacing: 1px;
   }
   #gameWrap {
     position: relative;
-    border: 4px solid #ff6b6b;
+    border: 4px solid #ffd93d;
     border-radius: 12px;
-    box-shadow: 0 0 40px rgba(255,107,107,0.4);
+    box-shadow: 0 0 44px rgba(255,217,61,0.35);
     overflow: hidden;
   }
-  canvas { display: block; background: #87ceeb; }
+  canvas { display: block; background: #2a2c52; }
   #overlay {
     position: absolute;
     inset: 0;
-    background: rgba(15,20,40,0.92);
+    background: rgba(10,14,32,0.93);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
     z-index: 5;
+    padding: 20px;
   }
   #overlay.hidden { display: none; }
   #overlay h2 {
-    font-size: 40px;
-    margin-bottom: 14px;
-    text-shadow: 0 0 20px #ffd93d;
+    font-size: 38px;
+    margin-bottom: 12px;
+    text-shadow: 0 0 22px #ffd93d;
   }
-  #overlay p { font-size: 16px; line-height: 1.9; opacity: 0.9; }
+  #overlay p { font-size: 15px; line-height: 1.85; opacity: 0.92; }
   .btn {
-    margin-top: 22px;
+    margin-top: 18px;
     background: linear-gradient(135deg, #ffd93d, #ff6b6b);
     color: #2c1810;
     border: none;
-    padding: 14px 40px;
+    padding: 13px 38px;
     border-radius: 30px;
-    font-size: 20px;
+    font-size: 19px;
     font-weight: bold;
     cursor: pointer;
     letter-spacing: 2px;
-    box-shadow: 0 5px 0 rgba(0,0,0,0.3);
-    transition: transform 0.15s;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.4);
+    transition: transform 0.12s;
+    font-family: inherit;
   }
-  .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.3); }
-  .keys { margin-top: 16px; font-size: 13px; opacity: 0.7; }
+  .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+  .keys {
+    margin-top: 14px; font-size: 13px; opacity: 0.78; line-height: 2;
+  }
   .keys b { color: #ffd93d; }
+  /* 商店 */
+  .shop {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 14px 0 4px;
+    width: 540px;
+    max-width: 90vw;
+  }
+  .shop-item {
+    background: rgba(255,255,255,0.06);
+    border: 2px solid #3a4a7a;
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .shop-item:hover { border-color: #ffd93d; background: rgba(255,217,61,0.1); }
+  .shop-item.maxed { opacity: 0.45; cursor: default; }
+  .shop-item.poor { opacity: 0.6; }
+  .shop-item .name { font-size: 14px; font-weight: bold; }
+  .shop-item .lvl { font-size: 12px; opacity: 0.7; }
+  .shop-item .cost { font-size: 13px; color: #ffd93d; font-weight: bold; margin-top: 4px; }
   a.back {
-    margin-top: 18px;
+    margin-top: 16px;
     color: #ffd93d;
     font-size: 14px;
     text-decoration: none;
@@ -84,385 +111,737 @@
 <body>
 
 <h1>🥷 忍豆風雲</h1>
-<div class="hint">操控你的忍豆，用拳擊與手裏劍掃蕩來襲的敵忍！</div>
+<div class="hint">挖掘地底尋寶 ‧ 佈下陷阱 ‧ 與來襲的敵忍正面對決</div>
 
 <div id="gameWrap">
-  <canvas id="game" width="900" height="420"></canvas>
-  <div id="overlay">
-    <h2>🥷 忍豆風雲</h2>
-    <p>波數越高，敵忍越兇猛！<br>守住你的生命值，成為傳說中的忍豆。</p>
-    <div class="keys">
-      <b>← →</b> 移動 ｜ <b>↑ / 空白</b> 跳躍 ｜ <b>J</b> 拳擊 ｜ <b>K</b> 手裏劍
-    </div>
-    <button class="btn" id="startBtn">開始修行</button>
-  </div>
+  <canvas id="game" width="900" height="540"></canvas>
+  <div id="overlay"></div>
 </div>
 <a class="back" href="../index.html">← 回到遊戲中心</a>
 
 <script>
+'use strict';
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
-const GROUND = H - 60;
 const overlay = document.getElementById('overlay');
-const startBtn = document.getElementById('startBtn');
 
+// ===== 常數 =====
+const TILE = 30, COLS = 30, ROWS = 18;
+const W = COLS * TILE, H = ROWS * TILE;   // 900 x 540
+const SURFACE = 7;                         // 第 7 列(含)以下為土
+const GRAV = 0.6, MAXFALL = 14;
+
+// 地形：0空氣 1泥土 2岩石 3泥土+金幣 4泥土+寶石
+let map = [];
+function solidVal(v) { return v === 1 || v === 2 || v === 3 || v === 4; }
+function digVal(v)   { return v === 1 || v === 3 || v === 4; }
+function tileAt(c, r) {
+  if (c < 0 || c >= COLS || r < 0 || r >= ROWS) return 2;
+  return map[r][c];
+}
+function solidPx(px, py) { return solidVal(tileAt(Math.floor(px / TILE), Math.floor(py / TILE))); }
+
+function genMap() {
+  map = [];
+  for (let r = 0; r < ROWS; r++) {
+    const row = [];
+    for (let c = 0; c < COLS; c++) {
+      if (c === 0 || c === COLS - 1 || r === ROWS - 1) row.push(2);      // 牆與底
+      else if (r < SURFACE) row.push(0);                                 // 天空
+      else if (r === SURFACE) row.push(1);                               // 草地表層
+      else {
+        const n = Math.random();
+        if (n < 0.09) row.push(2);                                       // 岩石
+        else if (n < 0.27) row.push(3);                                  // 金幣
+        else if (n < 0.30 && r > 11) row.push(4);                        // 深層寶石
+        else row.push(1);
+      }
+    }
+    map.push(row);
+  }
+}
+function restockTreasure(n) {
+  let placed = 0, tries = 0;
+  while (placed < n && tries < 600) {
+    tries++;
+    const r = 8 + Math.floor(Math.random() * (ROWS - 9));
+    const c = 1 + Math.floor(Math.random() * (COLS - 2));
+    if (map[r][c] === 1) { map[r][c] = (placed % 6 === 5 && r > 11) ? 4 : 3; placed++; }
+  }
+}
+
+// ===== 輸入 =====
 const keys = {};
 addEventListener('keydown', e => {
-  if (['ArrowLeft','ArrowRight','ArrowUp',' '].includes(e.key)) e.preventDefault();
-  keys[e.key.toLowerCase()] = true;
+  const k = e.key.toLowerCase();
+  if (['arrowleft','arrowright','arrowup','arrowdown',' '].includes(k)) e.preventDefault();
+  keys[k] = true;
 });
 addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 
-let state;
+// ===== 遊戲狀態 =====
+let G = null;            // 主遊戲物件
+let phase = 'start';     // start | playing | shop | over
+let shakeT = 0, shakeMag = 0, flashT = 0;
 
 function newGame() {
-  state = {
-    running: true,
+  genMap();
+  G = {
     player: {
-      x: W/2, y: GROUND, vx: 0, vy: 0, w: 44, h: 56,
-      facing: 1, hp: 100, maxHp: 100,
-      onGround: true, punchT: 0, hurtT: 0
+      x: 3 * TILE, y: SURFACE * TILE - 40, w: 24, h: 40,
+      vx: 0, vy: 0, facing: 1, onGround: false,
+      hp: 100, maxHp: 100, coins: 0,
+      hurtT: 0, slashT: 0, kunaiCD: 0, swordCD: 0, digT: 0, digCD: 0,
+      ninCD: 0, ninMax: 480,
+      kunaiDmg: 22, swordDmg: 30, animT: 0
     },
-    enemies: [],
-    shurikens: [],
-    particles: [],
-    wave: 0,
-    score: 0,
-    waveTimer: 0,
-    shurikenCD: 0,
-    spawnLeft: 0,
-    spawnTimer: 0
+    enemies: [], projectiles: [], pickups: [], particles: [],
+    wave: 0, spawnLeft: 0, spawnTimer: 0, waveClearT: 0, score: 0,
+    up: {
+      kunai: { lvl: 0, base: 25, name: '苦無傷害 +8' },
+      sword: { lvl: 0, base: 30, name: '忍太刀傷害 +14' },
+      hp:    { lvl: 0, base: 35, name: '最大生命 +25 (全回復)' },
+      ninju: { lvl: 0, base: 40, name: '忍術冷卻 −1.2 秒' }
+    }
   };
   startWave();
 }
 
 function startWave() {
-  state.wave++;
-  state.spawnLeft = 3 + state.wave * 2;
-  state.spawnTimer = 0;
-  // 每波回復少量生命
-  state.player.hp = Math.min(state.player.maxHp, state.player.hp + 12);
-  spawnFloat('第 ' + state.wave + ' 波！', W/2, 120, '#ffd93d');
+  G.wave++;
+  G.spawnLeft = 3 + G.wave * 2;
+  G.spawnTimer = 30;
+  G.waveClearT = 0;
+  if (G.wave > 1) restockTreasure(11);
+  floatText('第 ' + G.wave + ' 波 來襲！', W / 2, 120, '#ffd93d', 90);
 }
 
-function spawnEnemy() {
-  const fromLeft = Math.random() < 0.5;
-  const speed = 1.2 + state.wave * 0.18 + Math.random() * 0.6;
-  const tough = state.wave >= 4 && Math.random() < 0.3;
-  state.enemies.push({
-    x: fromLeft ? -40 : W + 40,
-    y: GROUND,
-    w: tough ? 48 : 40,
-    h: tough ? 60 : 50,
-    vy: 0, onGround: true,
-    facing: fromLeft ? 1 : -1,
-    speed: tough ? speed * 0.7 : speed,
-    hp: tough ? 3 : 1,
-    maxHp: tough ? 3 : 1,
-    tough,
-    hurtT: 0,
-    atkCD: 0
+// ===== 物理：實體 vs 地形 =====
+function moveEntity(e) {
+  // 水平
+  e.x += e.vx;
+  if (e.vx > 0 && (solidPx(e.x + e.w, e.y + 2) || solidPx(e.x + e.w, e.y + e.h - 2) || solidPx(e.x + e.w, e.y + e.h / 2))) {
+    e.x = Math.floor((e.x + e.w) / TILE) * TILE - e.w - 0.01; e.vx = 0; e.blocked = 1;
+  } else if (e.vx < 0 && (solidPx(e.x, e.y + 2) || solidPx(e.x, e.y + e.h - 2) || solidPx(e.x, e.y + e.h / 2))) {
+    e.x = (Math.floor(e.x / TILE) + 1) * TILE + 0.01; e.vx = 0; e.blocked = 1;
+  } else e.blocked = 0;
+  // 垂直
+  e.vy += GRAV;
+  if (e.vy > MAXFALL) e.vy = MAXFALL;
+  e.y += e.vy;
+  e.onGround = false;
+  if (e.vy > 0 && (solidPx(e.x + 3, e.y + e.h) || solidPx(e.x + e.w - 3, e.y + e.h))) {
+    e.y = Math.floor((e.y + e.h) / TILE) * TILE - e.h - 0.01; e.vy = 0; e.onGround = true;
+  } else if (e.vy < 0 && (solidPx(e.x + 3, e.y) || solidPx(e.x + e.w - 3, e.y))) {
+    e.y = (Math.floor(e.y / TILE) + 1) * TILE + 0.01; e.vy = 0;
+  }
+  if (e.y < 0) { e.y = 0; e.vy = 0; }
+}
+
+// ===== 特效 =====
+function dirtBurst(x, y, color) {
+  for (let i = 0; i < 9; i++) G.particles.push({
+    kind: 'chip', x, y, vx: (Math.random() - 0.5) * 5, vy: -Math.random() * 5 - 1,
+    life: 26 + Math.random() * 14, color, size: 3 + Math.random() * 3
   });
 }
-
-function spawnFloat(text, x, y, color) {
-  state.particles.push({ kind: 'text', text, x, y, life: 70, color });
+function spark(x, y, color, n) {
+  for (let i = 0; i < n; i++) G.particles.push({
+    kind: 'spark', x, y, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8 - 2,
+    life: 20 + Math.random() * 16, color, size: 3 + Math.random() * 2
+  });
 }
+function floatText(text, x, y, color, life) {
+  G.particles.push({ kind: 'text', text, x, y, color, life: life || 64, vy: -0.7 });
+}
+function shake(t, m) { shakeT = Math.max(shakeT, t); shakeMag = Math.max(shakeMag, m); }
 
-function burst(x, y, color, n) {
-  for (let i = 0; i < n; i++) {
-    state.particles.push({
-      kind: 'spark', x, y,
-      vx: (Math.random()-0.5)*7,
-      vy: (Math.random()-0.5)*7 - 2,
-      life: 24 + Math.random()*16, color
+// ===== 玩家 =====
+function digTile(c, r) {
+  const v = tileAt(c, r);
+  if (!digVal(v)) return false;
+  map[r][c] = 0;
+  const px = c * TILE + TILE / 2, py = r * TILE + TILE / 2;
+  dirtBurst(px, py, '#7a4a24');
+  if (v === 3) spawnPickup(px, py, 'coin');
+  else if (v === 4) spawnPickup(px, py, 'gem');
+  return true;
+}
+function updatePlayer() {
+  const p = G.player;
+  const SPD = 4.3;
+  let mx = 0;
+  if (keys['arrowleft'])  { mx = -1; p.facing = -1; }
+  if (keys['arrowright']) { mx =  1; p.facing =  1; }
+  p.vx = mx * SPD;
+
+  if ((keys['arrowup'] || keys[' ']) && p.onGround) { p.vy = -12.4; p.onGround = false; }
+
+  moveEntity(p);
+
+  // 挖掘（↓；配合 ←→ 橫向開洞）
+  if (p.digCD > 0) p.digCD--;
+  if (keys['arrowdown'] && p.digCD === 0) {
+    const cc = Math.floor((p.x + p.w / 2) / TILE);
+    const tr = Math.floor(p.y / TILE), br = Math.floor((p.y + p.h - 1) / TILE);
+    let dug = false;
+    if (mx !== 0) {
+      const tc = cc + mx;
+      if (digTile(tc, tr)) dug = true;
+      if (digTile(tc, br)) dug = true;
+    } else {
+      if (digTile(cc, br + 1)) dug = true;
+    }
+    if (dug) { p.digCD = 11; p.digT = 10; shake(3, 2); }
+    else p.digCD = 6;
+  }
+  if (p.digT > 0) p.digT--;
+
+  // 苦無
+  if (p.kunaiCD > 0) p.kunaiCD--;
+  if (keys['j'] && p.kunaiCD === 0) {
+    p.kunaiCD = 16;
+    G.projectiles.push({
+      kind: 'kunai', x: p.x + p.w / 2 + p.facing * 14, y: p.y + 14,
+      vx: p.facing * 9.5, vy: -2.6, dmg: p.kunaiDmg, fromPlayer: true, life: 110, spin: 0
     });
   }
-}
+  // 忍太刀
+  if (p.swordCD > 0) p.swordCD--;
+  if (keys['k'] && p.swordCD === 0) {
+    p.swordCD = 26; p.slashT = 14;
+    const reach = { x: p.facing > 0 ? p.x + p.w - 4 : p.x - 34, y: p.y + 2, w: 40, h: p.h - 2 };
+    G.enemies.forEach(e => {
+      if (!e.dead && aabb(reach, e)) {
+        hitEnemy(e, p.swordDmg, p.facing * 9, -4);
+        spark(e.x + e.w / 2, e.y + e.h / 2, '#ffd93d', 9);
+      }
+    });
+    shake(4, 3);
+  }
+  if (p.slashT > 0) p.slashT--;
 
-function rectHit(a, b) {
-  return Math.abs(a.x - b.x) < (a.w + b.w)/2 &&
-         Math.abs(a.y - a.h/2 - (b.y - b.h/2)) < (a.h + b.h)/2;
-}
-
-function update() {
-  if (!state || !state.running) return;
-  const p = state.player;
-
-  // 玩家移動
-  const SPD = 4.2;
-  if (keys['arrowleft'])  { p.vx = -SPD; p.facing = -1; }
-  else if (keys['arrowright']) { p.vx = SPD; p.facing = 1; }
-  else p.vx = 0;
-
-  if ((keys['arrowup'] || keys[' ']) && p.onGround) {
-    p.vy = -13; p.onGround = false;
+  // 忍術：手裏劍亂舞
+  if (p.ninCD > 0) p.ninCD--;
+  if (keys['l'] && p.ninCD === 0) {
+    p.ninCD = p.ninMax;
+    const cx = p.x + p.w / 2, cy = p.y + p.h / 2;
+    for (let i = 0; i < 16; i++) {
+      const a = (Math.PI * 2 / 16) * i;
+      G.projectiles.push({
+        kind: 'shuriken', x: cx, y: cy,
+        vx: Math.cos(a) * 7.5, vy: Math.sin(a) * 7.5,
+        dmg: 46, fromPlayer: true, life: 64, spin: 0
+      });
+    }
+    flashT = 8; shake(14, 7);
+    floatText('忍術・手裏劍亂舞！', cx, p.y - 16, '#4ecdc4', 70);
   }
 
-  p.vy += 0.7;
-  p.x += p.vx;
-  p.y += p.vy;
-  if (p.y >= GROUND) { p.y = GROUND; p.vy = 0; p.onGround = true; }
-  p.x = Math.max(p.w/2, Math.min(W - p.w/2, p.x));
-
-  if (p.punchT > 0) p.punchT--;
   if (p.hurtT > 0) p.hurtT--;
-  if (state.shurikenCD > 0) state.shurikenCD--;
+  if (Math.abs(p.vx) > 0.3 || !p.onGround) p.animT += 0.32;
+}
 
-  // 拳擊
-  if (keys['j'] && p.punchT === 0) {
-    p.punchT = 16;
-    const reach = { x: p.x + p.facing * 42, y: p.y, w: 40, h: 50 };
-    for (const e of state.enemies) {
-      if (rectHit(reach, e)) {
-        e.hp--; e.hurtT = 10;
-        e.x += p.facing * 26;
-        burst(e.x, e.y - e.h/2, '#ff6b6b', 8);
-        if (e.hp <= 0) killEnemy(e);
-      }
-    }
-  }
-
-  // 手裏劍
-  if (keys['k'] && state.shurikenCD === 0) {
-    state.shurikenCD = 22;
-    state.shurikens.push({
-      x: p.x + p.facing * 24, y: p.y - p.h/2,
-      vx: p.facing * 9, spin: 0, w: 22, h: 22
-    });
-  }
-
-  // 手裏劍飛行
-  for (const s of state.shurikens) {
-    s.x += s.vx; s.spin += 0.5;
-    for (const e of state.enemies) {
-      if (!e.dead && Math.abs(s.x - e.x) < (s.w + e.w)/2 &&
-          Math.abs(s.y - (e.y - e.h/2)) < (s.h + e.h)/2) {
-        e.hp -= 2; e.hurtT = 10;
-        burst(e.x, e.y - e.h/2, '#4ecdc4', 10);
-        s.dead = true;
-        if (e.hp <= 0) killEnemy(e);
-      }
-    }
-  }
-  state.shurikens = state.shurikens.filter(s => !s.dead && s.x > -30 && s.x < W + 30);
-
-  // 敵人生成
-  if (state.spawnLeft > 0) {
-    state.spawnTimer--;
-    if (state.spawnTimer <= 0) {
-      spawnEnemy();
-      state.spawnLeft--;
-      state.spawnTimer = 50 - Math.min(30, state.wave * 3);
-    }
-  } else if (state.enemies.length === 0) {
-    state.waveTimer++;
-    if (state.waveTimer > 60) { state.waveTimer = 0; startWave(); }
-  }
-
-  // 敵人 AI
-  for (const e of state.enemies) {
-    if (e.dead) continue;
-    const dir = p.x > e.x ? 1 : -1;
+// ===== 敵人 =====
+function spawnEnemy() {
+  const fromLeft = Math.random() < 0.5;
+  const w = G.wave;
+  let type = 'grunt';
+  const r = Math.random();
+  if (w >= 3 && r < 0.22) type = 'brute';
+  else if (r < 0.4) type = 'thrower';
+  const base = {
+    grunt:   { w: 26, h: 40, hp: 32 + w * 8,  speed: 1.6, color: '#e0584a', accent: '#7a1f1f' },
+    thrower: { w: 24, h: 38, hp: 24 + w * 6,  speed: 1.2, color: '#3fb7a8', accent: '#1c5b53' },
+    brute:   { w: 38, h: 54, hp: 90 + w * 16, speed: 1.0, color: '#9b6bd6', accent: '#43286b' }
+  }[type];
+  G.enemies.push({
+    type, x: fromLeft ? TILE + 6 : W - TILE - 6 - base.w, y: SURFACE * TILE - base.h,
+    w: base.w, h: base.h, vx: 0, vy: 0, facing: fromLeft ? 1 : -1,
+    hp: base.hp, maxHp: base.hp, speed: base.speed, color: base.color, accent: base.accent,
+    onGround: false, atkCD: 30, hurtT: 0, animT: Math.random() * 6, dead: false, blocked: 0
+  });
+}
+function updateEnemies() {
+  const p = G.player;
+  G.enemies.forEach(e => {
+    if (e.dead) return;
+    const ecx = e.x + e.w / 2, pcx = p.x + p.w / 2;
+    const dir = pcx > ecx ? 1 : -1;
     e.facing = dir;
-    const dist = Math.abs(p.x - e.x);
-    if (dist > 46) e.x += dir * e.speed;
+    e.vx = dir * e.speed;
+
+    moveEntity(e);
+
+    // 卡牆或玩家在上方 → 跳躍嘗試攀爬
+    if (e.onGround) {
+      const wallAhead = solidPx(e.x + (dir > 0 ? e.w + 3 : -3), e.y + e.h * 0.4) ||
+                        solidPx(e.x + (dir > 0 ? e.w + 3 : -3), e.y + e.h - 6);
+      if (wallAhead || (p.y + p.h < e.y - 8 && Math.random() < 0.08)) e.vy = -11;
+    }
+
     if (e.hurtT > 0) e.hurtT--;
     if (e.atkCD > 0) e.atkCD--;
+    e.animT += 0.26;
 
-    e.vy += 0.7; e.y += e.vy;
-    if (e.y >= GROUND) { e.y = GROUND; e.vy = 0; }
+    const dx = pcx - ecx, dy = (p.y + p.h / 2) - (e.y + e.h / 2);
+    const near = Math.abs(dx) < (e.w + p.w) / 2 + 14 && Math.abs(dy) < (e.h + p.h) / 2;
 
-    // 敵人攻擊玩家
-    if (dist < 50 && e.atkCD === 0 && p.hurtT === 0) {
-      e.atkCD = 40;
-      p.hp -= e.tough ? 14 : 8;
-      p.hurtT = 40;
-      p.x += dir * 24;
-      burst(p.x, p.y - p.h/2, '#ffd93d', 10);
-      if (p.hp <= 0) { p.hp = 0; gameOver(); }
+    if (e.type === 'thrower') {
+      if (e.atkCD === 0 && Math.abs(dx) < 360 && Math.abs(dy) < 60) {
+        e.atkCD = 78;
+        G.projectiles.push({
+          kind: 'kunai', x: ecx + dir * 12, y: e.y + 12,
+          vx: dir * 6.4, vy: -1.8, dmg: 11, fromPlayer: false, life: 130, spin: 0
+        });
+      }
     }
+    if (near && e.atkCD === 0) {
+      e.atkCD = 48;
+      hurtPlayer(e.type === 'brute' ? 20 : 10, dir);
+    }
+  });
+  G.enemies = G.enemies.filter(e => !e.dead);
+}
+function hitEnemy(e, dmg, kx, ky) {
+  e.hp -= dmg;
+  e.hurtT = 9;
+  e.x += kx; e.vy = Math.min(e.vy, ky);
+  if (e.hp <= 0 && !e.dead) {
+    e.dead = true;
+    const drop = e.type === 'brute' ? 8 : 3;
+    for (let i = 0; i < drop; i++)
+      spawnPickup(e.x + e.w / 2 + (Math.random() - 0.5) * 20, e.y + e.h / 2, Math.random() < 0.18 ? 'gem' : 'coin', true);
+    spark(e.x + e.w / 2, e.y + e.h / 2, e.color, 18);
+    G.score += e.type === 'brute' ? 60 : (e.type === 'thrower' ? 25 : 15);
+    floatText('+' + (e.type === 'brute' ? 60 : e.type === 'thrower' ? 25 : 15),
+      e.x + e.w / 2, e.y - 4, '#fff', 50);
   }
-  state.enemies = state.enemies.filter(e => !e.dead);
+}
+function hurtPlayer(dmg, dir) {
+  const p = G.player;
+  if (p.hurtT > 0) return;
+  p.hp -= dmg;
+  p.hurtT = 42;
+  p.x += dir * 18; p.vy = -5;
+  spark(p.x + p.w / 2, p.y + p.h / 2, '#ffd93d', 11);
+  shake(10, 5);
+  floatText('-' + dmg, p.x + p.w / 2, p.y - 6, '#ff6b6b', 48);
+  if (p.hp <= 0) { p.hp = 0; gameOver(); }
+}
 
-  // 粒子
-  for (const pa of state.particles) {
+// ===== 拾取物 =====
+function spawnPickup(x, y, kind, pop) {
+  G.pickups.push({
+    x, y, vx: pop ? (Math.random() - 0.5) * 4 : 0, vy: pop ? -Math.random() * 4 - 2 : -1,
+    kind, value: kind === 'gem' ? 5 : 1, life: 720, bob: Math.random() * 6
+  });
+}
+function updatePickups() {
+  const p = G.player, pcx = p.x + p.w / 2, pcy = p.y + p.h / 2;
+  G.pickups.forEach(k => {
+    k.life--; k.bob += 0.12;
+    k.vy += 0.4; k.x += k.vx; k.y += k.vy; k.vx *= 0.9;
+    if (solidPx(k.x, k.y + 8)) { k.y = Math.floor((k.y + 8) / TILE) * TILE - 8; k.vy = 0; k.vx *= 0.6; }
+    if (solidPx(k.x - 6, k.y)) k.x += 2;
+    if (solidPx(k.x + 6, k.y)) k.x -= 2;
+    const dx = pcx - k.x, dy = pcy - k.y, d = Math.hypot(dx, dy);
+    if (d < 90) { k.x += dx / d * 3.2; k.y += dy / d * 3.2; }   // 磁吸
+    if (d < 20) {
+      p.coins += k.value; G.score += k.value * 5; k.taken = true;
+      floatText('+' + k.value, k.x, k.y - 8, k.kind === 'gem' ? '#4ecdc4' : '#ffd93d', 38);
+    }
+  });
+  G.pickups = G.pickups.filter(k => !k.taken && k.life > 0);
+}
+
+// ===== 飛行道具 =====
+function aabb(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+function updateProjectiles() {
+  const p = G.player;
+  G.projectiles.forEach(pr => {
+    pr.life--; pr.spin += 0.6;
+    if (pr.kind === 'kunai') pr.vy += 0.22;
+    pr.x += pr.vx; pr.y += pr.vy;
+    if (solidPx(pr.x, pr.y)) { pr.dead = true; dirtBurst(pr.x, pr.y, '#9a9aa8'); return; }
+    if (pr.fromPlayer) {
+      G.enemies.forEach(e => {
+        if (!e.dead && !pr.dead && pr.x > e.x && pr.x < e.x + e.w && pr.y > e.y && pr.y < e.y + e.h) {
+          hitEnemy(e, pr.dmg, pr.vx > 0 ? 6 : -6, -3);
+          spark(pr.x, pr.y, pr.kind === 'shuriken' ? '#4ecdc4' : '#ffd93d', 8);
+          if (pr.kind !== 'shuriken') pr.dead = true;
+        }
+      });
+    } else {
+      if (!pr.dead && pr.x > p.x && pr.x < p.x + p.w && pr.y > p.y && pr.y < p.y + p.h) {
+        hurtPlayer(pr.dmg, pr.vx > 0 ? 1 : -1); pr.dead = true;
+      }
+    }
+  });
+  G.projectiles = G.projectiles.filter(pr => !pr.dead && pr.life > 0);
+}
+
+function updateParticles() {
+  G.particles.forEach(pa => {
     pa.life--;
-    if (pa.kind === 'spark') { pa.x += pa.vx; pa.y += pa.vy; pa.vy += 0.25; }
-    else if (pa.kind === 'text') pa.y -= 0.6;
+    if (pa.kind === 'text') { pa.y += pa.vy; }
+    else { pa.x += pa.vx; pa.y += pa.vy; pa.vy += pa.kind === 'chip' ? 0.4 : 0.18; }
+  });
+  G.particles = G.particles.filter(pa => pa.life > 0);
+}
+
+// ===== 主更新 =====
+function update() {
+  if (phase !== 'playing') return;
+  updatePlayer();
+  updateEnemies();
+  updateProjectiles();
+  updatePickups();
+  updateParticles();
+
+  // 出怪
+  if (G.spawnLeft > 0) {
+    G.spawnTimer--;
+    if (G.spawnTimer <= 0) {
+      spawnEnemy(); G.spawnLeft--;
+      G.spawnTimer = Math.max(28, 70 - G.wave * 4);
+    }
+  } else if (G.enemies.length === 0) {
+    G.waveClearT++;
+    if (G.waveClearT > 48) enterShop();
   }
-  state.particles = state.particles.filter(pa => pa.life > 0);
-}
-
-function killEnemy(e) {
-  e.dead = true;
-  state.score += e.tough ? 30 : 10;
-  burst(e.x, e.y - e.h/2, '#ffd93d', 16);
-  spawnFloat('+' + (e.tough ? 30 : 10), e.x, e.y - e.h - 6, '#fff');
-}
-
-function gameOver() {
-  state.running = false;
-  overlay.classList.remove('hidden');
-  overlay.querySelector('h2').textContent = '💀 忍豆殞落';
-  overlay.querySelector('p').innerHTML =
-    '你擐到了第 <b style="color:#ffd93d">' + state.wave + '</b> 波<br>' +
-    '總得分：<b style="color:#ffd93d">' + state.score + '</b>';
-  startBtn.textContent = '再戰一回';
 }
 
 // ===== 繪圖 =====
-function drawBean(x, y, w, h, color, facing, hurt, punching) {
+function drawSky() {
+  const g = ctx.createLinearGradient(0, 0, 0, SURFACE * TILE);
+  g.addColorStop(0, '#1b1f44'); g.addColorStop(1, '#5a4a78');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, SURFACE * TILE);
+  // 月
+  ctx.fillStyle = '#fdf3c4';
+  ctx.beginPath(); ctx.arc(W - 96, 70, 32, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1b1f44';
+  ctx.beginPath(); ctx.arc(W - 84, 62, 28, 0, Math.PI * 2); ctx.fill();
+  // 星
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  for (let i = 0; i < 22; i++) {
+    const sx = (i * 137) % W, sy = (i * 53) % (SURFACE * TILE - 30) + 8;
+    ctx.fillRect(sx, sy, 2, 2);
+  }
+}
+function drawTiles() {
+  for (let r = SURFACE; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const v = map[r][c];
+      if (v === 0) continue;
+      const x = c * TILE, y = r * TILE;
+      if (v === 2) {
+        ctx.fillStyle = '#5b5b6a'; ctx.fillRect(x, y, TILE, TILE);
+        ctx.fillStyle = '#73738a'; ctx.fillRect(x + 4, y + 4, 8, 6);
+        ctx.fillStyle = '#43434f'; ctx.fillRect(x + TILE - 12, y + TILE - 11, 9, 7);
+      } else {
+        ctx.fillStyle = '#7a4a24'; ctx.fillRect(x, y, TILE, TILE);
+        ctx.fillStyle = '#693f1e';
+        ctx.fillRect(x + ((c * 7 + r * 3) % 16), y + ((c * 5 + r * 11) % 18), 5, 5);
+        ctx.fillRect(x + 6 + ((c * 13) % 14), y + 14 + ((r * 7) % 12), 4, 4);
+        if (tileAt(c, r - 1) === 0) {                        // 草皮
+          ctx.fillStyle = '#5fae3a'; ctx.fillRect(x, y, TILE, 7);
+          ctx.fillStyle = '#4a8a2c'; ctx.fillRect(x, y + 5, TILE, 3);
+        }
+        if (v === 3) {                                       // 埋藏金幣
+          ctx.fillStyle = '#ffd93d';
+          ctx.beginPath(); ctx.arc(x + TILE / 2, y + TILE / 2, 6, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#caa01e'; ctx.font = 'bold 8px sans-serif';
+          ctx.textAlign = 'center'; ctx.fillText('忍', x + TILE / 2, y + TILE / 2 + 3);
+        } else if (v === 4) {                                // 埋藏寶石
+          ctx.fillStyle = '#4ecdc4';
+          ctx.beginPath();
+          ctx.moveTo(x + TILE / 2, y + 8); ctx.lineTo(x + TILE / 2 + 7, y + TILE / 2);
+          ctx.lineTo(x + TILE / 2, y + TILE - 8); ctx.lineTo(x + TILE / 2 - 7, y + TILE / 2);
+          ctx.closePath(); ctx.fill();
+        }
+      }
+    }
+  }
+}
+function drawNinja(e, color, accent, opts) {
+  opts = opts || {};
+  const x = e.x, y = e.y, w = e.w, h = e.h, cx = x + w / 2;
+  const t = e.animT || 0;
+  const walk = (Math.abs(e.vx) > 0.3 || !e.onGround) ? Math.sin(t) : 0;
+  // 影子
+  ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  ctx.beginPath(); ctx.ellipse(cx, y + h - 1, w * 0.5, 5, 0, 0, Math.PI * 2); ctx.fill();
+
   ctx.save();
-  ctx.translate(x, y - h/2);
-  if (hurt) ctx.globalAlpha = 0.55;
-  // 身體
+  if (opts.hurt && Math.floor(t * 3) % 2) ctx.globalAlpha = 0.35;
+  // 腳
+  ctx.fillStyle = '#2a2030';
+  ctx.beginPath(); ctx.ellipse(cx - w * 0.24, y + h - 3 + Math.max(0, walk * 4), 6, 4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx + w * 0.24, y + h - 3 + Math.max(0, -walk * 4), 6, 4, 0, 0, Math.PI * 2); ctx.fill();
+  // 身體（忍豆）
+  const by = y + h * 0.54;
   ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, w/2, h/2, 0, 0, Math.PI*2);
-  ctx.fill();
-  // 忍者頭巾
-  ctx.fillStyle = '#2c2c54';
-  ctx.beginPath();
-  ctx.ellipse(0, -h/4, w/2, h/4, 0, Math.PI, Math.PI*2);
-  ctx.fill();
-  ctx.fillRect(-w/2, -h/4 - 2, w, 6);
-  // 眼睛
+  ctx.beginPath(); ctx.ellipse(cx, by, w * 0.5, h * 0.44, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.16)';
+  ctx.beginPath(); ctx.ellipse(cx - w * 0.13, by + h * 0.05, w * 0.26, h * 0.27, 0, 0, Math.PI * 2); ctx.fill();
+  // 面罩
+  const bandY = y + h * 0.27;
+  ctx.fillStyle = '#241c2e';
+  ctx.fillRect(x + 1, bandY, w - 2, h * 0.2);
+  // 眼
+  const ex = e.facing;
   ctx.fillStyle = '#fff';
   ctx.beginPath();
-  ctx.ellipse(facing*5, -h/8, 7, 5, 0, 0, Math.PI*2);
+  ctx.ellipse(cx + ex * 3 - 5, bandY + h * 0.1, 3.6, 2.8, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx + ex * 3 + 5, bandY + h * 0.1, 3.6, 2.8, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#000';
+  ctx.fillStyle = '#1a1020';
   ctx.beginPath();
-  ctx.arc(facing*7, -h/8, 3, 0, Math.PI*2);
+  ctx.arc(cx + ex * 4 - 5, bandY + h * 0.1, 1.8, 0, Math.PI * 2);
+  ctx.arc(cx + ex * 4 + 5, bandY + h * 0.1, 1.8, 0, Math.PI * 2);
   ctx.fill();
-  // 拳頭
-  if (punching) {
+  // 頭巾與飄帶
+  ctx.fillStyle = accent;
+  const topY = y + h * 0.13;
+  ctx.fillRect(x + 2, topY, w - 4, 5);
+  const fl = Math.sin(t * 0.8) * 5;
+  ctx.beginPath();
+  ctx.moveTo(cx - ex * (w * 0.4), topY + 2);
+  ctx.lineTo(cx - ex * (w * 0.4) - ex * 16, topY - 3 + fl);
+  ctx.lineTo(cx - ex * (w * 0.4) - ex * 15, topY + 7 + fl);
+  ctx.closePath(); ctx.fill();
+  // 武器手
+  if (opts.dig) {
+    ctx.fillStyle = '#3a2a18';
+    ctx.save(); ctx.translate(cx + ex * w * 0.4, by + 4); ctx.rotate(ex * 0.7);
+    ctx.fillRect(0, -2, 16, 4); ctx.fillStyle = '#9aa0aa'; ctx.fillRect(14, -5, 7, 10);
+    ctx.restore();
+  } else {
     ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(cx + ex * (w * 0.46), by + 3, 5, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+
+  // 忍太刀斬擊
+  if (opts.slash > 0) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,' + (opts.slash / 14) + ')';
+    ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.arc(facing*(w/2 + 14), 4, 9, 0, Math.PI*2);
-    ctx.fill();
+    ctx.arc(cx + ex * 6, by, 30, ex > 0 ? -1.1 : Math.PI + 1.1, ex > 0 ? 1.1 : Math.PI - 1.1, ex < 0);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+function drawKunai(pr) {
+  ctx.save();
+  ctx.translate(pr.x, pr.y);
+  if (pr.kind === 'shuriken') {
+    ctx.rotate(pr.spin);
+    ctx.fillStyle = '#3a3a44';
+    for (let i = 0; i < 4; i++) {
+      ctx.rotate(Math.PI / 2);
+      ctx.beginPath();
+      ctx.moveTo(0, 0); ctx.lineTo(11, -4); ctx.lineTo(14, 0); ctx.lineTo(11, 4);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.fillStyle = '#4ecdc4';
+    ctx.beginPath(); ctx.arc(0, 0, 3.5, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.rotate(Math.atan2(pr.vy, pr.vx));
+    ctx.fillStyle = pr.fromPlayer ? '#d8d8e0' : '#ff8a6b';
+    ctx.beginPath();
+    ctx.moveTo(11, 0); ctx.lineTo(-2, -3.5); ctx.lineTo(-9, 0); ctx.lineTo(-2, 3.5);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#2a2030'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-9, 0); ctx.lineTo(-15, 0); ctx.stroke();
   }
   ctx.restore();
 }
-
-function draw() {
-  // 背景天空
-  const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, '#87ceeb');
-  sky.addColorStop(1, '#fce8b2');
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, W, H);
-
-  // 遠山
-  ctx.fillStyle = '#6b8e7f';
-  for (let i = 0; i < 4; i++) {
+function drawPickup(k) {
+  const yo = Math.sin(k.bob) * 3;
+  const fade = k.life < 120 ? (Math.floor(k.life / 6) % 2 ? 0.35 : 1) : 1;
+  ctx.globalAlpha = fade;
+  if (k.kind === 'gem') {
+    ctx.fillStyle = '#4ecdc4';
     ctx.beginPath();
-    ctx.moveTo(i*260 - 60, GROUND);
-    ctx.lineTo(i*260 + 80, GROUND - 150);
-    ctx.lineTo(i*260 + 220, GROUND);
-    ctx.fill();
+    ctx.moveTo(k.x, k.y - 8 + yo); ctx.lineTo(k.x + 7, k.y + yo);
+    ctx.lineTo(k.x, k.y + 8 + yo); ctx.lineTo(k.x - 7, k.y + yo);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillRect(k.x - 2, k.y - 4 + yo, 3, 3);
+  } else {
+    ctx.fillStyle = '#ffd93d';
+    ctx.beginPath(); ctx.arc(k.x, k.y + yo, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#caa01e'; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('忍', k.x, k.y + yo + 3);
   }
-  // 太陽
-  ctx.fillStyle = 'rgba(255,220,120,0.8)';
-  ctx.beginPath();
-  ctx.arc(W - 90, 80, 44, 0, Math.PI*2);
-  ctx.fill();
-
-  // 地面
-  ctx.fillStyle = '#8b5a2b';
-  ctx.fillRect(0, GROUND, W, H - GROUND);
-  ctx.fillStyle = '#5a9e3a';
-  ctx.fillRect(0, GROUND, W, 14);
-
-  if (!state) return;
-  const p = state.player;
-
-  // 手裏劍
-  for (const s of state.shurikens) {
-    ctx.save();
-    ctx.translate(s.x, s.y);
-    ctx.rotate(s.spin);
-    ctx.fillStyle = '#444';
-    for (let i = 0; i < 4; i++) {
-      ctx.rotate(Math.PI/2);
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(11, -4);
-      ctx.lineTo(13, 0);
-      ctx.lineTo(11, 4);
-      ctx.fill();
-    }
-    ctx.fillStyle = '#888';
-    ctx.beginPath();
-    ctx.arc(0, 0, 4, 0, Math.PI*2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // 敵人
-  for (const e of state.enemies) {
-    drawBean(e.x, e.y, e.w, e.h, e.tough ? '#9b59b6' : '#e74c3c',
-             e.facing, e.hurtT > 0, false);
-    if (e.maxHp > 1) {
-      ctx.fillStyle = '#000';
-      ctx.fillRect(e.x - 18, e.y - e.h - 10, 36, 5);
-      ctx.fillStyle = '#2ecc71';
-      ctx.fillRect(e.x - 18, e.y - e.h - 10, 36 * e.hp/e.maxHp, 5);
-    }
-  }
-
-  // 玩家
-  drawBean(p.x, p.y, p.w, p.h, '#f1c40f', p.facing, p.hurtT > 0, p.punchT > 8);
-
-  // 粒子
-  for (const pa of state.particles) {
-    if (pa.kind === 'spark') {
-      ctx.globalAlpha = Math.min(1, pa.life/20);
-      ctx.fillStyle = pa.color;
-      ctx.beginPath();
-      ctx.arc(pa.x, pa.y, 4, 0, Math.PI*2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    } else {
-      ctx.globalAlpha = Math.min(1, pa.life/30);
-      ctx.fillStyle = pa.color;
-      ctx.font = 'bold 22px Microsoft JhengHei';
-      ctx.textAlign = 'center';
-      ctx.fillText(pa.text, pa.x, pa.y);
-      ctx.globalAlpha = 1;
-    }
-  }
-
-  // HUD
-  ctx.fillStyle = 'rgba(0,0,0,0.55)';
-  ctx.fillRect(14, 14, 220, 26);
-  ctx.fillStyle = '#e74c3c';
-  ctx.fillRect(16, 16, 216 * p.hp/p.maxHp, 22);
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 14px Microsoft JhengHei';
+  ctx.globalAlpha = 1;
+}
+function drawHUD() {
+  const p = G.player;
+  // 生命
+  ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(14, 14, 224, 24);
+  ctx.fillStyle = '#3a1414'; ctx.fillRect(16, 16, 220, 20);
+  const hpw = 220 * Math.max(0, p.hp) / p.maxHp;
+  const hg = ctx.createLinearGradient(16, 0, 236, 0);
+  hg.addColorStop(0, '#ff4040'); hg.addColorStop(1, '#ff9a40');
+  ctx.fillStyle = hg; ctx.fillRect(16, 16, hpw, 20);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Microsoft JhengHei';
   ctx.textAlign = 'left';
-  ctx.fillText('❤ ' + p.hp + ' / ' + p.maxHp, 22, 32);
-
+  ctx.fillText('❤ ' + Math.max(0, Math.ceil(p.hp)) + ' / ' + p.maxHp, 22, 31);
+  // 金幣
+  ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(14, 42, 124, 24);
+  ctx.fillStyle = '#ffd93d'; ctx.font = 'bold 15px Microsoft JhengHei';
+  ctx.fillText('🪙 ' + p.coins, 22, 59);
+  // 波數
   ctx.textAlign = 'right';
-  ctx.font = 'bold 20px Microsoft JhengHei';
-  ctx.fillStyle = '#2c2c54';
-  ctx.fillText('🌀 第 ' + state.wave + ' 波', W - 16, 32);
-  ctx.fillText('⭐ ' + state.score, W - 16, 58);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 20px Microsoft JhengHei';
+  ctx.fillText('🌀 第 ' + G.wave + ' 波', W - 16, 34);
+  ctx.font = 'bold 14px Microsoft JhengHei'; ctx.fillStyle = '#bcc';
+  const remain = G.spawnLeft + G.enemies.length;
+  ctx.fillText('剩餘敵忍 ' + remain, W - 16, 56);
+  // 忍術
+  const ready = p.ninCD === 0;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(14, H - 38, 150, 24);
+  ctx.fillStyle = ready ? '#4ecdc4' : '#39506a';
+  ctx.fillRect(16, H - 36, 146 * (1 - p.ninCD / p.ninMax), 20);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Microsoft JhengHei';
+  ctx.fillText(ready ? '忍術 就緒！按 L' : '忍術冷卻中…', 24, H - 21);
+}
+function draw() {
+  drawSky();
+  // 地底背景（同時清除上一幀；挖空的隧道會露出此底色）
+  const cave = ctx.createLinearGradient(0, SURFACE * TILE, 0, H);
+  cave.addColorStop(0, '#2a1d33'); cave.addColorStop(1, '#150f1d');
+  ctx.fillStyle = cave;
+  ctx.fillRect(0, SURFACE * TILE, W, H - SURFACE * TILE);
+  ctx.save();
+  if (shakeT > 0) {
+    ctx.translate((Math.random() - 0.5) * shakeMag, (Math.random() - 0.5) * shakeMag);
+    shakeT--; if (shakeT === 0) shakeMag = 0;
+  }
+  if (map.length) drawTiles();
+  if (G) {
+    G.pickups.forEach(drawPickup);
+    G.enemies.forEach(e => drawNinja(e, e.color, e.accent, { hurt: e.hurtT > 0 }));
+    const p = G.player;
+    drawNinja(p, p.hurtT > 0 && Math.floor(p.animT * 3) % 2 ? '#f5d76e' : '#f1c40f',
+      '#c0392b', { hurt: false, slash: p.slashT, dig: p.digT > 0 });
+    G.projectiles.forEach(drawKunai);
+    G.particles.forEach(pa => {
+      if (pa.kind === 'text') {
+        ctx.globalAlpha = Math.min(1, pa.life / 28);
+        ctx.fillStyle = pa.color; ctx.font = 'bold 18px Microsoft JhengHei';
+        ctx.textAlign = 'center';
+        ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.lineWidth = 3;
+        ctx.strokeText(pa.text, pa.x, pa.y); ctx.fillText(pa.text, pa.x, pa.y);
+        ctx.globalAlpha = 1;
+      } else {
+        ctx.globalAlpha = Math.min(1, pa.life / 22);
+        ctx.fillStyle = pa.color;
+        ctx.fillRect(pa.x - pa.size / 2, pa.y - pa.size / 2, pa.size, pa.size);
+        ctx.globalAlpha = 1;
+      }
+    });
+  }
+  ctx.restore();
+  if (flashT > 0) {
+    ctx.fillStyle = 'rgba(255,255,255,' + (flashT / 8) * 0.55 + ')';
+    ctx.fillRect(0, 0, W, H); flashT--;
+  }
+  if (G && phase !== 'start') drawHUD();
 }
 
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
+// ===== 流程 =====
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+
+function showStart() {
+  phase = 'start';
+  overlay.className = '';
+  overlay.innerHTML =
+    '<h2>🥷 忍豆風雲</h2>' +
+    '<p>操控你的忍豆,挖掘地底搜刮金幣寶石,<br>' +
+    '佈下陷阱坑洞,迎戰一波波來襲的敵忍!</p>' +
+    '<div class="keys">' +
+    '<b>← →</b> 移動 ｜ <b>↑ / 空白</b> 跳躍<br>' +
+    '<b>↓</b> 挖掘(配合 ←→ 可橫向開洞)<br>' +
+    '<b>J</b> 苦無投擲 ｜ <b>K</b> 忍太刀 ｜ <b>L</b> 忍術' +
+    '</div>' +
+    '<button class="btn" id="goBtn">開始修行</button>';
+  document.getElementById('goBtn').onclick = () => {
+    overlay.className = 'hidden'; newGame(); phase = 'playing';
+  };
+}
+function enterShop() {
+  phase = 'shop';
+  renderShop();
+}
+function renderShop() {
+  const p = G.player, up = G.up;
+  const cost = u => u.base + u.lvl * u.base;
+  const maxed = { kunai: 6, sword: 6, hp: 6, ninju: 4 };
+  let items = '';
+  for (const key of ['kunai', 'sword', 'hp', 'ninju']) {
+    const u = up[key], c = cost(u), isMax = u.lvl >= maxed[key];
+    const cls = isMax ? 'maxed' : (p.coins < c ? 'shop-item poor' : 'shop-item');
+    items +=
+      '<div class="' + cls + '" data-key="' + key + '">' +
+      '<div class="name">' + u.name + '</div>' +
+      '<div class="lvl">等級 ' + u.lvl + ' / ' + maxed[key] + '</div>' +
+      '<div class="cost">' + (isMax ? '已滿級' : '🪙 ' + c) + '</div>' +
+      '</div>';
+  }
+  overlay.className = '';
+  overlay.innerHTML =
+    '<h2>🏯 忍具屋</h2>' +
+    '<p>第 ' + G.wave + ' 波清空!持有金幣 <b style="color:#ffd93d">🪙 ' + p.coins + '</b>' +
+    ' ｜ 苦無 ' + p.kunaiDmg + ' ‧ 忍太刀 ' + p.swordDmg + '</p>' +
+    '<div class="shop">' + items + '</div>' +
+    '<button class="btn" id="nextBtn">前往第 ' + (G.wave + 1) + ' 波 →</button>';
+  overlay.querySelectorAll('.shop-item').forEach(el => {
+    el.onclick = () => buy(el.dataset.key);
+  });
+  document.getElementById('nextBtn').onclick = () => {
+    // 下一波前回復三成生命
+    p.hp = Math.min(p.maxHp, p.hp + Math.round(p.maxHp * 0.3));
+    overlay.className = 'hidden';
+    startWave();
+    phase = 'playing';
+  };
+}
+function buy(key) {
+  const p = G.player, u = G.up[key];
+  const maxed = { kunai: 6, sword: 6, hp: 6, ninju: 4 };
+  const c = u.base + u.lvl * u.base;
+  if (u.lvl >= maxed[key] || p.coins < c) return;
+  p.coins -= c; u.lvl++;
+  if (key === 'kunai') p.kunaiDmg += 8;
+  else if (key === 'sword') p.swordDmg += 14;
+  else if (key === 'hp') { p.maxHp += 25; p.hp = p.maxHp; }
+  else if (key === 'ninju') p.ninMax = Math.max(120, p.ninMax - 72);
+  renderShop();
+}
+function gameOver() {
+  phase = 'over';
+  overlay.className = '';
+  overlay.innerHTML =
+    '<h2>💀 忍豆殞落</h2>' +
+    '<p>你撐到了第 <b style="color:#ffd93d">' + G.wave + '</b> 波<br>' +
+    '搜刮金幣 <b style="color:#ffd93d">🪙 ' + G.player.coins + '</b><br>' +
+    '總得分 <b style="color:#ffd93d">' + G.score + '</b></p>' +
+    '<button class="btn" id="againBtn">再戰一回</button>';
+  document.getElementById('againBtn').onclick = () => {
+    overlay.className = 'hidden'; newGame(); phase = 'playing';
+  };
 }
 
-startBtn.addEventListener('click', () => {
-  overlay.classList.add('hidden');
-  newGame();
-});
-
+showStart();
 loop();
 </script>
 
