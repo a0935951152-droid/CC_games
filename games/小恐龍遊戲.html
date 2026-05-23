@@ -34,6 +34,11 @@
     overflow: hidden;
     box-shadow: 0 12px 48px rgba(0,0,0,0.6), 0 0 0 3px rgba(255,255,255,0.1);
   }
+  #gameContainer canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+  }
   canvas { display: block; }
   #hud {
     position: absolute;
@@ -182,15 +187,8 @@
   <p><b>← →</b> 左右閃避 &nbsp;|&nbsp; <b>空白 / ↑</b> 跳躍 &nbsp;|&nbsp; <b>↓</b> 蹲 &nbsp;|&nbsp; <b>R</b> 重新開始</p>
 </div>
 
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-  }
-}
-</script>
 <script type="module">
-import * as THREE from 'three';
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
 
 const container = document.getElementById('gameContainer');
 const loadingEl = document.getElementById('loading');
@@ -198,8 +196,9 @@ const messageEl = document.getElementById('message');
 const scoreEl = document.getElementById('score');
 const highScoreEl = document.getElementById('highScore');
 
-const W = container.clientWidth;
-const H = container.clientHeight;
+// aspect-ratio 排版可能尚未算完，給預設值防呆
+const W = container.clientWidth  || 960;
+const H = container.clientHeight || 540;
 
 // ============================================================
 // 程序化紋理（Canvas → CanvasTexture）
@@ -355,12 +354,18 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 container.appendChild(renderer.domElement);
 
-window.addEventListener('resize', () => {
+function fitToContainer() {
   const w = container.clientWidth, h = container.clientHeight;
+  if (!w || !h) return;
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(w, h);
-});
+  renderer.setSize(w, h, false); // false: 不要寫 inline 樣式，交給 CSS 撐滿
+}
+window.addEventListener('resize', fitToContainer);
+window.addEventListener('orientationchange', () => setTimeout(fitToContainer, 200));
+// 載入後再 fit 一次，確保 aspect-ratio 排版完成才設定
+requestAnimationFrame(fitToContainer);
+window.addEventListener('load', fitToContainer);
 
 const sun = new THREE.DirectionalLight(0xffeec8, 1.1);
 sun.position.set(8, 18, 4);
